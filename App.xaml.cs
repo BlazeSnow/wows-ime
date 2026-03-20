@@ -28,6 +28,7 @@ namespace wows_ime
         {
             window ??= new Window();
             MainWindow = window;
+            window.Title = "战舰世界输入法配置工具";
 
             if (window.Content is not Frame rootFrame)
             {
