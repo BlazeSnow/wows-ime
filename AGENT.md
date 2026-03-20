@@ -1,6 +1,7 @@
 # AI编程指导文件
 
-禁止对本文件进行修改
+1. 禁止对本文件进行修改
+2. 所有文件都以UTF-8格式存储
 
 ## 程序介绍
 
@@ -8,17 +9,19 @@
 
 ## 配置文件示例
 
-以微软拼音输入法为例：
+示例的配置文件见仓库根目录的ime_config.xml文件
 
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<data>
-  <language>
-    <ChineseSimplified>
-      <imeName>微软拼音输入法</imeName>
-      <displayName>微软拼音输入法</displayName>
-      <Tag>GFxIME_Ch_Simp</Tag>
-    </ChineseSimplified>
-  </language>
-</data>
-```
+## 程序逻辑
+
+1. 扫描并列出用户的输入法
+2. 由用户勾选要添加的输入法，并选择各个选定的输入法的类型（中文简体、繁体或日文）
+3. 检查配置文件目录是否已有ime_config.xml：若有，则提示用户覆盖；若无，由用户确认添加
+
+## 配置文件目录
+
+1. 需要由用户选定游戏根目录
+2. 如果为steam下载的游戏，默认是：`C:\Program Files (x86)\Steam\steamapps\common\World of Warships`
+3. 也存在大量不是steam下载的用户，所以需要提供选择文件夹功能
+4. 用户选择游戏根目录后，需要确认游戏根目录存在游戏exe程序
+5. 游戏exe程序一般是`WorldOfWarships.exe`，对于俄罗斯服玩家，exe程序是`Korabli.exe`
+6. 确认游戏根目录后，本程序的输入法配置文件目录为`\bin\8842736\res_mods\ime_config.xml`，其中的`8842736`是游戏多版本中的一个版本，游戏一般运行最大数字的版本，可以为所有版本都添加输入法配置文件
