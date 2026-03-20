@@ -22,17 +22,24 @@
                 <TextBlock Text="扫描本机输入法，勾选并指定类型后写入游戏目录的 ime_config.xml。" TextWrapping="WrapWholeWords" />
             </StackPanel>
 
-            <Grid Grid.Row="1" ColumnSpacing="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBox x:Name="GameRootPathBox" Header="游戏根目录" />
-                <Button Grid.Column="1" Click="PickFolderButton_Click" Content="选择目录" />
-            </Grid>
+            <StackPanel Grid.Row="1" Spacing="6">
+                <TextBlock Text="游戏根目录" />
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="GameRootPathBox" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Click="PickFolderButton_Click" Content="选择目录" VerticalAlignment="Center" />
+                </Grid>
+            </StackPanel>
 
             <Border Grid.Row="2" Padding="12" BorderBrush="{ThemeResource SystemControlForegroundBaseMediumBrush}" BorderThickness="1" CornerRadius="8">
-                <StackPanel Spacing="8">
+                <Grid RowSpacing="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
                     <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -41,7 +48,7 @@
                         <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Text="检测到的输入法" />
                         <Button Grid.Column="1" Click="RefreshImeButton_Click" Content="重新扫描" />
                     </Grid>
-                    <ListView x:Name="ImeListView" MinHeight="280" ItemsSource="{x:Bind InputMethods, Mode=OneWay}">
+                    <ListView Grid.Row="1" x:Name="ImeListView" VerticalAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemsSource="{x:Bind InputMethods, Mode=OneWay}">
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="local:InputMethodItem">
                                 <Grid Padding="0,4" ColumnSpacing="12">
@@ -61,7 +68,7 @@
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
-                </StackPanel>
+                </Grid>
             </Border>
 
             <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">

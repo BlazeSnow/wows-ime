@@ -186,11 +186,18 @@ public sealed partial class MainPage : Page
     private static IEnumerable<string> ReadTipProfileNamesFromRegistry()
     {
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        CollectTipProfileNamesFromRoot(Microsoft.Win32.Registry.CurrentUser, names);
+        CollectTipProfileNamesFromRoot(Microsoft.Win32.Registry.LocalMachine, names);
 
-        using var tipRoot = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\CTF\TIP");
+        return names;
+    }
+
+    private static void CollectTipProfileNamesFromRoot(Microsoft.Win32.RegistryKey root, ISet<string> names)
+    {
+        using var tipRoot = root.OpenSubKey(@"Software\Microsoft\CTF\TIP");
         if (tipRoot is null)
         {
-            return names;
+            return;
         }
 
         foreach (var clsid in tipRoot.GetSubKeyNames())
@@ -203,6 +210,11 @@ public sealed partial class MainPage : Page
 
             foreach (var langId in languageProfileKey.GetSubKeyNames())
             {
+                if (!IsTargetLanguageProfile(langId))
+                {
+                    continue;
+                }
+
                 using var langKey = languageProfileKey.OpenSubKey(langId);
                 if (langKey is null)
                 {
@@ -214,13 +226,29 @@ public sealed partial class MainPage : Page
                     var name = ResolveTipProfileDisplayName(clsid, langId, profileGuid);
                     if (!string.IsNullOrWhiteSpace(name))
                     {
-                        _ = names.Add(name);
+                        _ = names.Add(NormalizeImeDisplayName(name));
                     }
                 }
             }
         }
+    }
 
-        return names;
+    private static bool IsTargetLanguageProfile(string langId) =>
+        string.Equals(langId, "0x00000804", StringComparison.OrdinalIgnoreCase) || // zh-CN
+        string.Equals(langId, "0x00000404", StringComparison.OrdinalIgnoreCase) || // zh-TW
+        string.Equals(langId, "0x00000C04", StringComparison.OrdinalIgnoreCase) || // zh-HK
+        string.Equals(langId, "0x00001004", StringComparison.OrdinalIgnoreCase) || // zh-SG
+        string.Equals(langId, "0x00001404", StringComparison.OrdinalIgnoreCase) || // zh-MO
+        string.Equals(langId, "0x00000411", StringComparison.OrdinalIgnoreCase);   // ja-JP
+
+    private static string NormalizeImeDisplayName(string name)
+    {
+        if (string.Equals(name, "WeType", StringComparison.OrdinalIgnoreCase))
+        {
+            return "微信输入法";
+        }
+
+        return name;
     }
 
     private static string? ResolveTipProfileDisplayName(string clsid, string langId, string profileGuid)
