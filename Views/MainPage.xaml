@@ -30,7 +30,16 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBox x:Name="GameRootPathBox" VerticalAlignment="Center" />
+                    <ComboBox
+                        x:Name="GameRootPathBox"
+                        IsEditable="True"
+                        SelectionChanged="GameRootPathBox_SelectionChanged"
+                        LostFocus="GameRootPathBox_LostFocus"
+                        VerticalAlignment="Center">
+                        <x:String>C:\Program Files (x86)\Steam\steamapps\common\World of Warships</x:String>
+                        <x:String>C:\Games\Korabli</x:String>
+                        <x:String>C:\Games\World_of_Warships_CN360</x:String>
+                    </ComboBox>
                     <Button Grid.Column="1" Click="OpenFolderButton_Click" Content="打开目录" VerticalAlignment="Center" />
                     <Button Grid.Column="2" Click="PickFolderButton_Click" Content="选择目录" VerticalAlignment="Center" />
                 </Grid>

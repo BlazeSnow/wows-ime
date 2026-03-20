@@ -2,8 +2,10 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using System.Xml.Linq;
 using Microsoft.UI.Xaml.Controls;
+using Windows.Storage;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 
@@ -12,6 +14,8 @@ namespace wows_ime.Views;
 public sealed partial class MainPage : Page
 {
     private const string SteamDefaultPath = @"C:\Program Files (x86)\Steam\steamapps\common\World of Warships";
+    private const string LestaDefaultPath = @"C:\Games\Korabli";
+    private const string Cn360DefaultPath = @"C:\Games\World_of_Warships_CN360";
     private const string WowsExeName = "WorldOfWarships.exe";
     private const string KorabliExeName = "Korabli.exe";
     private const string TargetConfigRelativePath = "res_mods\\ime_config.xml";
@@ -19,14 +23,16 @@ public sealed partial class MainPage : Page
     private const string TagTraditional = "GFxIME_Ch_Trad_Array";
     private const string TagJapanese = "GFxIME_Jp";
     private string? lastScanWarning;
+    private readonly JsonSerializerOptions jsonOptions = new() { WriteIndented = true };
 
     public ObservableCollection<InputMethodItem> InputMethods { get; } = new();
 
     public MainPage()
     {
         InitializeComponent();
-        GameRootPathBox.Text = SteamDefaultPath;
+        GameRootPathBox.Text = LoadSavedGameDir() ?? SteamDefaultPath;
         LoadInputMethods();
+        LoadSavedCustomIme();
     }
 
     private async void PickFolderButton_Click(object sender, RoutedEventArgs e)
@@ -47,12 +53,24 @@ public sealed partial class MainPage : Page
         if (folder is not null)
         {
             GameRootPathBox.Text = folder.Path;
+            SaveSettings();
         }
     }
 
     private void RefreshImeButton_Click(object sender, RoutedEventArgs e)
     {
         LoadInputMethods();
+        LoadSavedCustomIme();
+    }
+
+    private void GameRootPathBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        SaveSettings();
+    }
+
+    private void GameRootPathBox_LostFocus(object sender, RoutedEventArgs e)
+    {
+        SaveSettings();
     }
 
     private void OpenFolderButton_Click(object sender, RoutedEventArgs e)
@@ -131,7 +149,7 @@ public sealed partial class MainPage : Page
             return;
         }
 
-        var newItem = new InputMethodItem(name)
+        var newItem = new InputMethodItem(name, isCustom: true)
         {
             IsSelected = true,
             CategoryIndex = categoryCombo.SelectedIndex < 0 ? 0 : categoryCombo.SelectedIndex
@@ -139,6 +157,7 @@ public sealed partial class MainPage : Page
 
         InputMethods.Add(newItem);
         ShowStatus("已添加自定义输入法。", InfoBarSeverity.Success);
+        SaveSettings();
     }
 
     private async void WriteConfigButton_Click(object sender, RoutedEventArgs e)
@@ -166,7 +185,7 @@ public sealed partial class MainPage : Page
         var targetFiles = ResolveTargetConfigFiles(gameRoot);
         if (targetFiles.Count == 0)
         {
-            await ShowErrorDialogAsync("未在游戏目录的 bin 下找到数字版本目录，无法确定 ime_config.xml 写入位置。");
+            ShowStatus("未在游戏目录的 bin 下找到数字版本目录，无法确定写入位置。", InfoBarSeverity.Error);
             return;
         }
 
@@ -175,6 +194,15 @@ public sealed partial class MainPage : Page
         {
             var shouldOverwrite = await ConfirmOverwriteAsync(existing.Count);
             if (!shouldOverwrite)
+            {
+                ShowStatus("已取消写入。", InfoBarSeverity.Informational);
+                return;
+            }
+        }
+        else
+        {
+            var shouldAdd = await ConfirmAddAsync(targetFiles.Count);
+            if (!shouldAdd)
             {
                 ShowStatus("已取消写入。", InfoBarSeverity.Informational);
                 return;
@@ -198,6 +226,7 @@ public sealed partial class MainPage : Page
             }
 
             ShowStatus($"写入成功，共更新 {targetFiles.Count} 个配置文件。", InfoBarSeverity.Success);
+            SaveSettings();
         }
         catch (Exception ex)
         {
@@ -553,18 +582,140 @@ public sealed partial class MainPage : Page
         return result == ContentDialogResult.Primary;
     }
 
-    private async Task ShowErrorDialogAsync(string message)
+    private async Task<bool> ConfirmAddAsync(int targetCount)
     {
         var dialog = new ContentDialog
         {
-            Title = "无法写入配置",
-            Content = message,
-            CloseButtonText = "确定",
-            DefaultButton = ContentDialogButton.Close,
+            Title = "未发现配置文件",
+            Content = $"将新增 {targetCount} 个 ime_config.xml，是否继续？",
+            PrimaryButtonText = "新增",
+            CloseButtonText = "取消",
+            DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot
         };
 
-        _ = await dialog.ShowAsync();
+        var result = await dialog.ShowAsync();
+        return result == ContentDialogResult.Primary;
+    }
+
+    private void LoadSavedCustomIme()
+    {
+        var settings = LoadSettings();
+        if (settings?.Ime is null || settings.Ime.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var savedIme in settings.Ime)
+        {
+            if (string.IsNullOrWhiteSpace(savedIme.Name))
+            {
+                continue;
+            }
+
+            if (InputMethods.Any(item => string.Equals(item.DisplayName, savedIme.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
+            var category = savedIme.Category switch
+            {
+                "ChineseTraditional" => ImeCategory.ChineseTraditional,
+                "Japanese" => ImeCategory.Japanese,
+                _ => ImeCategory.ChineseSimplified
+            };
+
+            InputMethods.Add(new InputMethodItem(savedIme.Name, category, isCustom: true));
+        }
+    }
+
+    private string? LoadSavedGameDir()
+    {
+        var settings = LoadSettings();
+        return string.IsNullOrWhiteSpace(settings?.GameDir) ? null : settings.GameDir;
+    }
+
+    private AppSettings? LoadSettings()
+    {
+        try
+        {
+            var path = GetSettingsPath();
+            if (!File.Exists(path))
+            {
+                return null;
+            }
+
+            var json = File.ReadAllText(path, Encoding.UTF8);
+            return JsonSerializer.Deserialize<AppSettings>(json, jsonOptions);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private void SaveSettings()
+    {
+        try
+        {
+            var settings = new AppSettings
+            {
+                GameDir = GameRootPathBox.Text?.Trim(),
+                Ime = InputMethods
+                    .Where(item => item.IsCustom)
+                    .Select(item => new SavedIme
+                    {
+                        Name = item.DisplayName,
+                        Category = item.Category.ToString()
+                    })
+                    .ToList()
+            };
+
+            var path = GetSettingsPath();
+            var directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrWhiteSpace(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            var json = JsonSerializer.Serialize(settings, jsonOptions);
+            File.WriteAllText(path, json, new UTF8Encoding(false));
+        }
+        catch
+        {
+            // Keep failures silent to avoid breaking the main workflow.
+        }
+    }
+
+    private static string GetSettingsPath()
+    {
+        var settingsDirectory = GetSettingsDirectory();
+        return Path.Combine(settingsDirectory, "config.json");
+    }
+
+    private static string GetSettingsDirectory()
+    {
+        if (IsPackagedApp())
+        {
+            return ApplicationData.Current.LocalFolder.Path;
+        }
+
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "wows-ime");
+    }
+
+    private static bool IsPackagedApp()
+    {
+        try
+        {
+            _ = Windows.ApplicationModel.Package.Current;
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private void ShowStatus(string message, InfoBarSeverity severity)
@@ -678,14 +829,16 @@ public enum ImeCategory
 
 public sealed class InputMethodItem : Microsoft.UI.Xaml.DependencyObject
 {
-    public InputMethodItem(string displayName, ImeCategory initialCategory = ImeCategory.ChineseSimplified)
+    public InputMethodItem(string displayName, ImeCategory initialCategory = ImeCategory.ChineseSimplified, bool isCustom = false)
     {
         DisplayName = displayName;
         Category = initialCategory;
         CategoryIndex = (int)initialCategory;
+        IsCustom = isCustom;
     }
 
     public string DisplayName { get; }
+    public bool IsCustom { get; }
 
     public bool IsSelected
     {
@@ -726,6 +879,18 @@ public sealed class InputMethodItem : Microsoft.UI.Xaml.DependencyObject
 }
 
 public sealed record ScannedImeCandidate(string DisplayName, ImeCategory Category, int Confidence);
+
+public sealed class AppSettings
+{
+    public string? GameDir { get; set; }
+    public List<SavedIme> Ime { get; set; } = new();
+}
+
+public sealed class SavedIme
+{
+    public string? Name { get; set; }
+    public string Category { get; set; } = nameof(ImeCategory.ChineseSimplified);
+}
 
 [StructLayout(LayoutKind.Sequential)]
 internal struct TF_LANGUAGEPROFILE
