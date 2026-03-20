@@ -28,6 +28,14 @@
 7. 游戏exe程序一般是`WorldOfWarships.exe`，对于俄罗斯服玩家，exe程序是`Korabli.exe`
 8. 确认游戏根目录后，本程序的输入法配置文件目录为`\bin\8842736\res_mods\ime_config.xml`，其中的`8842736`是游戏多版本中的一个版本，游戏一般运行最大数字的版本，可以为所有版本都添加输入法配置文件
 
+## 持久化配置
+
+1. 如果程序为打包状态，则存储于软件包数据根目录，类似于`%AppData%\Local\Packages\example\LocalState`
+2. 如果程序为未打包状态，则存储于`%AppData%\Local\wows-ime`
+3. 需要持久化的配置如下：
+   1. 游戏根目录：`game_dir`
+   2. 用户自定义输入法名称与类型：`ime`
+
 ## 程序架构
 
 1. 程序使用winui 3架构
