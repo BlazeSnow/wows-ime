@@ -160,6 +160,23 @@ public sealed partial class MainPage : Page
         SaveSettings();
     }
 
+    private void DeleteCustomImeButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: InputMethodItem item })
+        {
+            return;
+        }
+
+        if (!item.IsCustom)
+        {
+            return;
+        }
+
+        _ = InputMethods.Remove(item);
+        ShowStatus("已删除自定义输入法。", InfoBarSeverity.Success);
+        SaveSettings();
+    }
+
     private async void WriteConfigButton_Click(object sender, RoutedEventArgs e)
     {
         var selectedIme = InputMethods.Where(item => item.IsSelected).ToList();
@@ -839,6 +856,7 @@ public sealed class InputMethodItem : Microsoft.UI.Xaml.DependencyObject
 
     public string DisplayName { get; }
     public bool IsCustom { get; }
+    public Visibility DeleteButtonVisibility => IsCustom ? Visibility.Visible : Visibility.Collapsed;
 
     public bool IsSelected
     {

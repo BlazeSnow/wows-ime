@@ -67,17 +67,32 @@
                             <DataTemplate x:DataType="local:InputMethodItem">
                                 <Grid Padding="0,4" ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="56" />
                                         <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="180" />
+                                        <ColumnDefinition Width="80" />
                                     </Grid.ColumnDefinitions>
-                                    <CheckBox VerticalAlignment="Center" IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
+                                    <CheckBox
+                                        MinWidth="0"
+                                        MinHeight="0"
+                                        Padding="0"
+                                        Margin="0"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
                                     <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind DisplayName}" />
                                     <ComboBox Grid.Column="2" SelectedIndex="{x:Bind CategoryIndex, Mode=TwoWay}">
                                         <ComboBoxItem Content="中文简体" />
                                         <ComboBoxItem Content="中文繁体" />
                                         <ComboBoxItem Content="日文" />
                                     </ComboBox>
+                                    <Button
+                                        Grid.Column="3"
+                                        Click="DeleteCustomImeButton_Click"
+                                        Content="删除"
+                                        HorizontalAlignment="Stretch"
+                                        Tag="{x:Bind}"
+                                        Visibility="{x:Bind DeleteButtonVisibility, Mode=OneWay}" />
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
