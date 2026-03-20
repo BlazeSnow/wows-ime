@@ -21,10 +21,21 @@
 
 1. 需要由用户选定游戏根目录
 2. 如果为steam下载的游戏，默认是：`C:\Program Files (x86)\Steam\steamapps\common\World of Warships`
-3. 也存在大量不是steam下载的用户，所以需要提供选择文件夹功能
-4. 用户选择游戏根目录后，需要确认游戏根目录存在游戏exe程序
-5. 游戏exe程序一般是`WorldOfWarships.exe`，对于俄罗斯服玩家，exe程序是`Korabli.exe`
-6. 确认游戏根目录后，本程序的输入法配置文件目录为`\bin\8842736\res_mods\ime_config.xml`，其中的`8842736`是游戏多版本中的一个版本，游戏一般运行最大数字的版本，可以为所有版本都添加输入法配置文件
+3. 如果是莱斯塔启动器下载的游戏，默认是：`C:\Games\Korabli`
+4. 如果是360启动器下载的游戏，默认是：`C:\Games\World_of_Warships_CN360`
+5. 也存在大量不是steam下载的用户，所以需要提供选择文件夹功能
+6. 用户选择游戏根目录后，需要确认游戏根目录存在游戏exe程序
+7. 游戏exe程序一般是`WorldOfWarships.exe`，对于俄罗斯服玩家，exe程序是`Korabli.exe`
+8. 确认游戏根目录后，本程序的输入法配置文件目录为`\bin\8842736\res_mods\ime_config.xml`，其中的`8842736`是游戏多版本中的一个版本，游戏一般运行最大数字的版本，可以为所有版本都添加输入法配置文件
+9. 注意，`8842736`只是游戏版本示例，不允许以此为回退方案
+
+## 持久化配置
+
+1. 如果程序为打包状态，则存储于软件包数据根目录，类似于`%AppData%\Local\Packages\example\LocalState`
+2. 如果程序为未打包状态，则存储于`%AppData%\Local\wows-ime`
+3. 需要持久化的配置如下：
+   1. 游戏根目录：`game_dir`
+   2. 用户自定义输入法名称与类型：`ime`的`Name`和`Category`
 
 ## 程序架构
 

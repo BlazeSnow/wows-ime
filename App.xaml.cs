@@ -8,6 +8,7 @@ namespace wows_ime
     public partial class App : Application
     {
         private Window window = Window.Current;
+        public static Window? MainWindow { get; private set; }
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -26,6 +27,8 @@ namespace wows_ime
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
             window ??= new Window();
+            MainWindow = window;
+            window.Title = "战舰世界输入法配置工具";
 
             if (window.Content is not Frame rootFrame)
             {
