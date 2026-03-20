@@ -1,6 +1,6 @@
 <Solution>
     <Project Path="wows-ime.csproj">
-        <Platform Solution="Debug|*" Project="x64" />
+        <Platform Project="x64" />
         <Deploy />
     </Project>
 </Solution>
