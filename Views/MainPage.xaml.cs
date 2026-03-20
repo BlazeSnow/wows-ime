@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Linq;
 using Microsoft.UI.Xaml.Controls;
@@ -174,7 +175,107 @@ public sealed partial class MainPage : Page
             }
         }
 
+        foreach (var tipName in ReadTipProfileNamesFromRegistry())
+        {
+            _ = names.Add(tipName);
+        }
+
         return names.OrderBy(name => name, StringComparer.CurrentCultureIgnoreCase);
+    }
+
+    private static IEnumerable<string> ReadTipProfileNamesFromRegistry()
+    {
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        using var tipRoot = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\CTF\TIP");
+        if (tipRoot is null)
+        {
+            return names;
+        }
+
+        foreach (var clsid in tipRoot.GetSubKeyNames())
+        {
+            using var languageProfileKey = tipRoot.OpenSubKey($@"{clsid}\LanguageProfile");
+            if (languageProfileKey is null)
+            {
+                continue;
+            }
+
+            foreach (var langId in languageProfileKey.GetSubKeyNames())
+            {
+                using var langKey = languageProfileKey.OpenSubKey(langId);
+                if (langKey is null)
+                {
+                    continue;
+                }
+
+                foreach (var profileGuid in langKey.GetSubKeyNames())
+                {
+                    var name = ResolveTipProfileDisplayName(clsid, langId, profileGuid);
+                    if (!string.IsNullOrWhiteSpace(name))
+                    {
+                        _ = names.Add(name);
+                    }
+                }
+            }
+        }
+
+        return names;
+    }
+
+    private static string? ResolveTipProfileDisplayName(string clsid, string langId, string profileGuid)
+    {
+        var relativePath = $@"Software\Microsoft\CTF\TIP\{clsid}\LanguageProfile\{langId}\{profileGuid}";
+        var candidate = ReadTipNameFromPath(Microsoft.Win32.Registry.CurrentUser, relativePath);
+        if (!string.IsNullOrWhiteSpace(candidate))
+        {
+            return candidate;
+        }
+
+        return ReadTipNameFromPath(Microsoft.Win32.Registry.LocalMachine, relativePath);
+    }
+
+    private static string? ReadTipNameFromPath(Microsoft.Win32.RegistryKey root, string relativePath)
+    {
+        using var key = root.OpenSubKey(relativePath);
+        if (key is null)
+        {
+            return null;
+        }
+
+        var description = key.GetValue("Description")?.ToString();
+        var displayDescription = key.GetValue("Display Description")?.ToString();
+
+        var resolvedDisplay = TryResolveIndirectString(displayDescription);
+        if (!string.IsNullOrWhiteSpace(resolvedDisplay))
+        {
+            return resolvedDisplay;
+        }
+
+        if (!string.IsNullOrWhiteSpace(description))
+        {
+            return description;
+        }
+
+        return displayDescription;
+    }
+
+    private static string? TryResolveIndirectString(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || !value.StartsWith("@", StringComparison.Ordinal))
+        {
+            return value;
+        }
+
+        var buffer = new StringBuilder(512);
+        var result = SHLoadIndirectString(value, buffer, buffer.Capacity, IntPtr.Zero);
+        if (result != 0)
+        {
+            return value;
+        }
+
+        var resolved = buffer.ToString().Trim();
+        return string.IsNullOrWhiteSpace(resolved) ? value : resolved;
     }
 
     private static string? ResolveLayoutDisplayName(string code)
@@ -294,6 +395,13 @@ public sealed partial class MainPage : Page
         StatusInfoBar.Message = message;
         StatusInfoBar.IsOpen = true;
     }
+
+    [DllImport("shlwapi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern int SHLoadIndirectString(
+        string pszSource,
+        StringBuilder pszOutBuf,
+        int cchOutBuf,
+        IntPtr ppvReserved);
 }
 
 public enum ImeCategory
