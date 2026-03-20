@@ -32,6 +32,7 @@
                     </Grid.ColumnDefinitions>
                     <ComboBox
                         x:Name="GameRootPathBox"
+                        HorizontalAlignment="Stretch"
                         IsEditable="True"
                         SelectionChanged="GameRootPathBox_SelectionChanged"
                         LostFocus="GameRootPathBox_LostFocus"
