@@ -18,6 +18,7 @@ public sealed partial class MainPage : Page
     private const string TagSimplified = "GFxIME_Ch_Simp";
     private const string TagTraditional = "GFxIME_Ch_Trad_Array";
     private const string TagJapanese = "GFxIME_Jp";
+    private string? lastScanWarning;
 
     public ObservableCollection<InputMethodItem> InputMethods { get; } = new();
 
@@ -207,18 +208,213 @@ public sealed partial class MainPage : Page
     private void LoadInputMethods()
     {
         InputMethods.Clear();
+        string? warning;
 
-        foreach (var imeName in ReadImeNamesFromRegistry())
+        foreach (var ime in ReadImeCandidatesFromRegistry(out warning))
         {
-            InputMethods.Add(new InputMethodItem(imeName));
+            InputMethods.Add(new InputMethodItem(ime.DisplayName, ime.Category));
+        }
+
+        lastScanWarning = warning;
+
+        if (InputMethods.Count == 0 && !string.IsNullOrWhiteSpace(lastScanWarning))
+        {
+            ShowStatus($"扫描完成，未发现输入法。TSF错误：{lastScanWarning}", InfoBarSeverity.Warning);
+            return;
         }
 
         ShowStatus($"扫描完成，共发现 {InputMethods.Count} 个输入法。", InfoBarSeverity.Success);
     }
 
-    private static IEnumerable<string> ReadImeNamesFromRegistry()
+    private static IEnumerable<ScannedImeCandidate> ReadImeCandidatesFromRegistry(out string? warning)
     {
-        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        warning = null;
+        var candidates = new Dictionary<string, ScannedImeCandidate>(StringComparer.OrdinalIgnoreCase);
+        foreach (var candidate in ReadImeCandidatesFromTsf(out warning))
+        {
+            UpsertCandidate(candidates, candidate);
+        }
+
+        return candidates.Values.OrderBy(item => item.DisplayName, StringComparer.CurrentCultureIgnoreCase);
+    }
+
+    private static IEnumerable<ScannedImeCandidate> ReadImeCandidatesFromTsf(out string? warning)
+    {
+        warning = null;
+        var candidates = new List<ScannedImeCandidate>();
+        var coInitHr = CoInitializeEx(IntPtr.Zero, COINIT_APARTMENTTHREADED);
+        var shouldUninitialize = coInitHr == 0 || coInitHr == 1;
+        if (coInitHr < 0 && coInitHr != unchecked((int)0x80010106))
+        {
+            warning = $"CoInitializeEx 失败: 0x{coInitHr:X8}";
+            return candidates;
+        }
+
+        try
+        {
+            var profilesPtr = CreateInputProcessorProfilesCom();
+            if (profilesPtr == IntPtr.Zero)
+            {
+                warning = "无法创建 TF_InputProcessorProfiles COM 对象。";
+                return candidates;
+            }
+
+            try
+            {
+                var hr = GetLanguageList(profilesPtr, out var langPtr, out var langCount);
+                if (hr < 0 || langPtr == IntPtr.Zero || langCount == 0)
+                {
+                    warning = hr < 0
+                        ? $"GetLanguageList 失败: 0x{hr:X8}"
+                        : "GetLanguageList 返回空语言列表";
+                    return candidates;
+                }
+
+                try
+                {
+                    for (var i = 0; i < langCount; i++)
+                    {
+                        var langId = (ushort)Marshal.ReadInt16(langPtr, (int)i * sizeof(short));
+                        if (!IsTargetLanguageProfile(langId))
+                        {
+                            continue;
+                        }
+
+                        hr = EnumLanguageProfiles(profilesPtr, langId, out var enumProfilesPtr);
+                        if (hr < 0 || enumProfilesPtr == IntPtr.Zero)
+                        {
+                            continue;
+                        }
+
+                        try
+                        {
+                            while (true)
+                            {
+                                var items = new TF_LANGUAGEPROFILE[1];
+                                hr = EnumLanguageProfilesNext(enumProfilesPtr, 1, items, out var fetched);
+                                if (hr != 0 || fetched == 0)
+                                {
+                                    break;
+                                }
+
+                                var item = items[0];
+                                var enabledHr = IsEnabledLanguageProfile(
+                                    profilesPtr,
+                                    ref item.clsid,
+                                    item.langid,
+                                    ref item.guidProfile,
+                                    out var enabled);
+                                if (enabledHr < 0 || enabled == 0)
+                                {
+                                    continue;
+                                }
+
+                                var name = GetTsfProfileDescription(profilesPtr, item);
+                                if (string.IsNullOrWhiteSpace(name))
+                                {
+                                    continue;
+                                }
+
+                                name = NormalizeImeDisplayName(name);
+                                if (IsNoiseImeName(name))
+                                {
+                                    continue;
+                                }
+
+                                var category = InferCategoryFromLangId(item.langid)
+                                    ?? InferCategoryFromName(name)
+                                    ?? ImeCategory.ChineseSimplified;
+
+                                candidates.Add(new ScannedImeCandidate(name, category, 10));
+                            }
+                        }
+                        finally
+                        {
+                            _ = Marshal.Release(enumProfilesPtr);
+                        }
+                    }
+                }
+                finally
+                {
+                    CoTaskMemFree(langPtr);
+                }
+            }
+            finally
+            {
+                _ = Marshal.Release(profilesPtr);
+            }
+        }
+        catch (COMException ex)
+        {
+            warning = $"COMException 0x{ex.HResult:X8}: {ex.Message}";
+            return candidates;
+        }
+        catch (Exception ex)
+        {
+            warning = $"TSF异常: {ex.Message}";
+            return candidates;
+        }
+        finally
+        {
+            if (shouldUninitialize)
+            {
+                CoUninitialize();
+            }
+        }
+
+        return candidates;
+    }
+
+    private static IntPtr CreateInputProcessorProfilesCom()
+    {
+        // CLSID_TF_InputProcessorProfiles
+        var clsid = new Guid("33C53A50-F456-4884-B049-85FD643ECFED");
+        var iid = new Guid("1F02B6C5-7842-4EE6-8A0B-9A24183A95CA");
+        var hr = CoCreateInstance(ref clsid, IntPtr.Zero, CLSCTX_INPROC_SERVER, ref iid, out var ptr);
+        if (hr < 0)
+        {
+            return IntPtr.Zero;
+        }
+
+        return ptr;
+    }
+
+    private static string? GetTsfProfileDescription(IntPtr profilesPtr, TF_LANGUAGEPROFILE item)
+    {
+        var hr = GetLanguageProfileDescription(profilesPtr, ref item.clsid, item.langid, ref item.guidProfile, out var bstrPtr);
+        if (hr >= 0 && bstrPtr != IntPtr.Zero)
+        {
+            try
+            {
+                var tsfDescription = Marshal.PtrToStringBSTR(bstrPtr);
+                if (!string.IsNullOrWhiteSpace(tsfDescription))
+                {
+                    return tsfDescription;
+                }
+            }
+            finally
+            {
+                SysFreeString(bstrPtr);
+            }
+        }
+
+        return ResolveTipProfileDisplayName(
+            item.clsid.ToString("B"),
+            $"0x{item.langid:X8}",
+            item.guidProfile.ToString("B"));
+    }
+
+    private static void UpsertCandidate(IDictionary<string, ScannedImeCandidate> candidates, ScannedImeCandidate candidate)
+    {
+        if (!candidates.TryGetValue(candidate.DisplayName, out var existing) || candidate.Confidence > existing.Confidence)
+        {
+            candidates[candidate.DisplayName] = candidate;
+        }
+    }
+
+    private static IEnumerable<ScannedImeCandidate> ReadKeyboardLayoutCandidates()
+    {
+        var candidates = new List<ScannedImeCandidate>();
         var preloadCodes = new List<string>();
 
         using (var preloadKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Keyboard Layout\Preload"))
@@ -256,30 +452,37 @@ public sealed partial class MainPage : Page
         {
             var normalizedCode = substitutes.TryGetValue(code, out var substitute) ? substitute : code;
             var displayName = ResolveLayoutDisplayName(normalizedCode);
-            if (!string.IsNullOrWhiteSpace(displayName))
+            if (string.IsNullOrWhiteSpace(displayName))
             {
-                _ = names.Add(displayName);
+                continue;
             }
+
+            displayName = NormalizeImeDisplayName(displayName);
+            if (IsNoiseImeName(displayName))
+            {
+                continue;
+            }
+
+            var category = InferCategoryFromLangId(ParseLangIdFromKeyboardLayoutCode(normalizedCode))
+                ?? InferCategoryFromName(displayName)
+                ?? ImeCategory.ChineseSimplified;
+
+            var confidence = InferCategoryFromLangId(ParseLangIdFromKeyboardLayoutCode(normalizedCode)).HasValue ? 2 : 1;
+            candidates.Add(new ScannedImeCandidate(displayName, category, confidence));
         }
 
-        foreach (var tipName in ReadTipProfileNamesFromRegistry())
-        {
-            _ = names.Add(tipName);
-        }
-
-        return names.OrderBy(name => name, StringComparer.CurrentCultureIgnoreCase);
+        return candidates;
     }
 
-    private static IEnumerable<string> ReadTipProfileNamesFromRegistry()
+    private static IEnumerable<ScannedImeCandidate> ReadTipProfileCandidates()
     {
-        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        CollectTipProfileNamesFromRoot(Microsoft.Win32.Registry.CurrentUser, names);
-        CollectTipProfileNamesFromRoot(Microsoft.Win32.Registry.LocalMachine, names);
-
-        return names;
+        var candidates = new List<ScannedImeCandidate>();
+        CollectTipProfileNamesFromRoot(Microsoft.Win32.Registry.CurrentUser, candidates);
+        CollectTipProfileNamesFromRoot(Microsoft.Win32.Registry.LocalMachine, candidates);
+        return candidates;
     }
 
-    private static void CollectTipProfileNamesFromRoot(Microsoft.Win32.RegistryKey root, ISet<string> names)
+    private static void CollectTipProfileNamesFromRoot(Microsoft.Win32.RegistryKey root, ICollection<ScannedImeCandidate> candidates)
     {
         using var tipRoot = root.OpenSubKey(@"Software\Microsoft\CTF\TIP");
         if (tipRoot is null)
@@ -311,31 +514,126 @@ public sealed partial class MainPage : Page
                 foreach (var profileGuid in langKey.GetSubKeyNames())
                 {
                     var name = ResolveTipProfileDisplayName(clsid, langId, profileGuid);
-                    if (!string.IsNullOrWhiteSpace(name))
+                    if (string.IsNullOrWhiteSpace(name))
                     {
-                        _ = names.Add(NormalizeImeDisplayName(name));
+                        continue;
                     }
+
+                    name = NormalizeImeDisplayName(name);
+                    if (IsNoiseImeName(name))
+                    {
+                        continue;
+                    }
+
+                    var category = InferCategoryFromLangId(ParseLangIdFromTip(langId))
+                        ?? InferCategoryFromName(name)
+                        ?? ImeCategory.ChineseSimplified;
+                    var confidence = InferCategoryFromLangId(ParseLangIdFromTip(langId)).HasValue ? 3 : 1;
+                    candidates.Add(new ScannedImeCandidate(name, category, confidence));
                 }
             }
         }
     }
 
     private static bool IsTargetLanguageProfile(string langId) =>
-        string.Equals(langId, "0x00000804", StringComparison.OrdinalIgnoreCase) || // zh-CN
-        string.Equals(langId, "0x00000404", StringComparison.OrdinalIgnoreCase) || // zh-TW
-        string.Equals(langId, "0x00000C04", StringComparison.OrdinalIgnoreCase) || // zh-HK
-        string.Equals(langId, "0x00001004", StringComparison.OrdinalIgnoreCase) || // zh-SG
-        string.Equals(langId, "0x00001404", StringComparison.OrdinalIgnoreCase) || // zh-MO
-        string.Equals(langId, "0x00000411", StringComparison.OrdinalIgnoreCase);   // ja-JP
+        IsTargetLanguageProfile(ParseLangIdFromTip(langId));
+
+    private static bool IsTargetLanguageProfile(ushort? langId) => langId is
+        0x0804 or // zh-CN
+        0x0404 or // zh-TW
+        0x0C04 or // zh-HK
+        0x1004 or // zh-SG
+        0x1404 or // zh-MO
+        0x0411;   // ja-JP
 
     private static string NormalizeImeDisplayName(string name)
     {
-        if (string.Equals(name, "WeType", StringComparison.OrdinalIgnoreCase))
+        if (name.Contains("wetype", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(name, "微信输入法", StringComparison.OrdinalIgnoreCase))
         {
             return "微信输入法";
         }
 
-        return name;
+        return name.Trim();
+    }
+
+    private static bool IsNoiseImeName(string name) =>
+        name.Contains("输入体验", StringComparison.OrdinalIgnoreCase) ||
+        name.Contains("Input Experience", StringComparison.OrdinalIgnoreCase);
+
+    private static ushort? ParseLangIdFromTip(string langId)
+    {
+        if (string.IsNullOrWhiteSpace(langId))
+        {
+            return null;
+        }
+
+        var value = langId.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? langId[2..] : langId;
+        if (value.Length < 4)
+        {
+            return null;
+        }
+
+        var suffix = value[^4..];
+        return ushort.TryParse(suffix, System.Globalization.NumberStyles.HexNumber, null, out var lang) ? lang : null;
+    }
+
+    private static ushort? ParseLangIdFromKeyboardLayoutCode(string code)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            return null;
+        }
+
+        var value = code.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? code[2..] : code;
+        if (value.Length < 4)
+        {
+            return null;
+        }
+
+        var suffix = value[^4..];
+        return ushort.TryParse(suffix, System.Globalization.NumberStyles.HexNumber, null, out var lang) ? lang : null;
+    }
+
+    private static ImeCategory? InferCategoryFromLangId(ushort? langId) => langId switch
+    {
+        0x0804 or 0x1004 => ImeCategory.ChineseSimplified,
+        0x0404 or 0x0C04 or 0x1404 => ImeCategory.ChineseTraditional,
+        0x0411 => ImeCategory.Japanese,
+        _ => null
+    };
+
+    private static ImeCategory? InferCategoryFromName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return null;
+        }
+
+        if (name.Contains("速成", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("倉頡", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("仓颉", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("注音", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("Quick", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("Cangjie", StringComparison.OrdinalIgnoreCase))
+        {
+            return ImeCategory.ChineseTraditional;
+        }
+
+        if (name.Contains("Japanese", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("日文", StringComparison.OrdinalIgnoreCase))
+        {
+            return ImeCategory.Japanese;
+        }
+
+        if (name.Contains("拼音", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("五笔", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("微信输入法", StringComparison.OrdinalIgnoreCase))
+        {
+            return ImeCategory.ChineseSimplified;
+        }
+
+        return null;
     }
 
     private static string? ResolveTipProfileDisplayName(string clsid, string langId, string profileGuid)
@@ -511,12 +809,106 @@ public sealed partial class MainPage : Page
         StatusInfoBar.IsOpen = true;
     }
 
+    private static int GetLanguageList(IntPtr profilesPtr, out IntPtr langPtr, out uint langCount)
+    {
+        // ITfInputProcessorProfiles::GetLanguageList is vtable slot 15 (IUnknown + 12 methods before it).
+        var fn = GetVtableDelegate<TfGetLanguageListDelegate>(profilesPtr, 15);
+        return fn(profilesPtr, out langPtr, out langCount);
+    }
+
+    private static int EnumLanguageProfiles(IntPtr profilesPtr, ushort langId, out IntPtr enumProfilesPtr)
+    {
+        // ITfInputProcessorProfiles::EnumLanguageProfiles is vtable slot 16.
+        var fn = GetVtableDelegate<TfEnumLanguageProfilesDelegate>(profilesPtr, 16);
+        return fn(profilesPtr, langId, out enumProfilesPtr);
+    }
+
+    private static int GetLanguageProfileDescription(IntPtr profilesPtr, ref Guid clsid, ushort langId, ref Guid profileGuid, out IntPtr bstrPtr)
+    {
+        // ITfInputProcessorProfiles::GetLanguageProfileDescription is vtable slot 12.
+        var fn = GetVtableDelegate<TfGetLanguageProfileDescriptionDelegate>(profilesPtr, 12);
+        return fn(profilesPtr, ref clsid, langId, ref profileGuid, out bstrPtr);
+    }
+
+    private static int EnumLanguageProfilesNext(IntPtr enumProfilesPtr, uint count, TF_LANGUAGEPROFILE[] buffer, out uint fetched)
+    {
+        // IEnumTfLanguageProfiles::Next is vtable slot 4.
+        var fn = GetVtableDelegate<TfEnumLanguageProfilesNextDelegate>(enumProfilesPtr, 4);
+        return fn(enumProfilesPtr, count, buffer, out fetched);
+    }
+
+    private static int IsEnabledLanguageProfile(IntPtr profilesPtr, ref Guid clsid, ushort langId, ref Guid profileGuid, out int enabled)
+    {
+        // ITfInputProcessorProfiles::IsEnabledLanguageProfile is vtable slot 18.
+        var fn = GetVtableDelegate<TfIsEnabledLanguageProfileDelegate>(profilesPtr, 18);
+        return fn(profilesPtr, ref clsid, langId, ref profileGuid, out enabled);
+    }
+
+    private static T GetVtableDelegate<T>(IntPtr comPtr, int methodIndex) where T : Delegate
+    {
+        var vtable = Marshal.ReadIntPtr(comPtr);
+        var methodPtr = Marshal.ReadIntPtr(vtable, methodIndex * IntPtr.Size);
+        return Marshal.GetDelegateForFunctionPointer<T>(methodPtr);
+    }
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    private delegate int TfGetLanguageListDelegate(IntPtr @this, out IntPtr ppLangId, out uint pulCount);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    private delegate int TfEnumLanguageProfilesDelegate(IntPtr @this, ushort langid, out IntPtr ppEnum);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    private delegate int TfGetLanguageProfileDescriptionDelegate(
+        IntPtr @this,
+        ref Guid rclsid,
+        ushort langid,
+        ref Guid guidProfile,
+        out IntPtr pbstrProfile);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    private delegate int TfEnumLanguageProfilesNextDelegate(
+        IntPtr @this,
+        uint ulCount,
+        [Out] TF_LANGUAGEPROFILE[] pProfile,
+        out uint pcFetch);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    private delegate int TfIsEnabledLanguageProfileDelegate(
+        IntPtr @this,
+        ref Guid rclsid,
+        ushort langid,
+        ref Guid guidProfile,
+        out int pfEnable);
+
+    [DllImport("ole32.dll")]
+    private static extern int CoCreateInstance(
+        ref Guid rclsid,
+        IntPtr pUnkOuter,
+        uint dwClsContext,
+        ref Guid riid,
+        out IntPtr ppv);
+
+    [DllImport("ole32.dll")]
+    private static extern void CoTaskMemFree(IntPtr pv);
+
+    [DllImport("ole32.dll")]
+    private static extern int CoInitializeEx(IntPtr pvReserved, uint dwCoInit);
+
+    [DllImport("ole32.dll")]
+    private static extern void CoUninitialize();
+
+    [DllImport("oleaut32.dll")]
+    private static extern void SysFreeString(IntPtr bstr);
+
     [DllImport("shlwapi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern int SHLoadIndirectString(
         string pszSource,
         StringBuilder pszOutBuf,
         int cchOutBuf,
         IntPtr ppvReserved);
+
+    private const uint COINIT_APARTMENTTHREADED = 0x2;
+    private const uint CLSCTX_INPROC_SERVER = 0x1;
 }
 
 public enum ImeCategory
@@ -528,10 +920,11 @@ public enum ImeCategory
 
 public sealed class InputMethodItem : Microsoft.UI.Xaml.DependencyObject
 {
-    public InputMethodItem(string displayName)
+    public InputMethodItem(string displayName, ImeCategory initialCategory = ImeCategory.ChineseSimplified)
     {
         DisplayName = displayName;
-        Category = ImeCategory.ChineseSimplified;
+        Category = initialCategory;
+        CategoryIndex = (int)initialCategory;
     }
 
     public string DisplayName { get; }
@@ -572,4 +965,16 @@ public sealed class InputMethodItem : Microsoft.UI.Xaml.DependencyObject
             new PropertyMetadata(0));
 
     public ImeCategory Category { get; private set; }
+}
+
+public sealed record ScannedImeCandidate(string DisplayName, ImeCategory Category, int Confidence);
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct TF_LANGUAGEPROFILE
+{
+    public Guid clsid;
+    public ushort langid;
+    public Guid catid;
+    public int fActive;
+    public Guid guidProfile;
 }
