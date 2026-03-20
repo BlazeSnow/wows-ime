@@ -398,10 +398,7 @@ public sealed partial class MainPage : Page
             }
         }
 
-        return ResolveTipProfileDisplayName(
-            item.clsid.ToString("B"),
-            $"0x{item.langid:X8}",
-            item.guidProfile.ToString("B"));
+        return null;
     }
 
     private static void UpsertCandidate(IDictionary<string, ScannedImeCandidate> candidates, ScannedImeCandidate candidate)
@@ -411,132 +408,6 @@ public sealed partial class MainPage : Page
             candidates[candidate.DisplayName] = candidate;
         }
     }
-
-    private static IEnumerable<ScannedImeCandidate> ReadKeyboardLayoutCandidates()
-    {
-        var candidates = new List<ScannedImeCandidate>();
-        var preloadCodes = new List<string>();
-
-        using (var preloadKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Keyboard Layout\Preload"))
-        {
-            if (preloadKey is not null)
-            {
-                foreach (var valueName in preloadKey.GetValueNames())
-                {
-                    var value = preloadKey.GetValue(valueName)?.ToString();
-                    if (!string.IsNullOrWhiteSpace(value))
-                    {
-                        preloadCodes.Add(value);
-                    }
-                }
-            }
-        }
-
-        var substitutes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        using (var substitutesKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Keyboard Layout\Substitutes"))
-        {
-            if (substitutesKey is not null)
-            {
-                foreach (var valueName in substitutesKey.GetValueNames())
-                {
-                    var value = substitutesKey.GetValue(valueName)?.ToString();
-                    if (!string.IsNullOrWhiteSpace(value))
-                    {
-                        substitutes[valueName] = value;
-                    }
-                }
-            }
-        }
-
-        foreach (var code in preloadCodes)
-        {
-            var normalizedCode = substitutes.TryGetValue(code, out var substitute) ? substitute : code;
-            var displayName = ResolveLayoutDisplayName(normalizedCode);
-            if (string.IsNullOrWhiteSpace(displayName))
-            {
-                continue;
-            }
-
-            displayName = NormalizeImeDisplayName(displayName);
-            if (IsNoiseImeName(displayName))
-            {
-                continue;
-            }
-
-            var category = InferCategoryFromLangId(ParseLangIdFromKeyboardLayoutCode(normalizedCode))
-                ?? InferCategoryFromName(displayName)
-                ?? ImeCategory.ChineseSimplified;
-
-            var confidence = InferCategoryFromLangId(ParseLangIdFromKeyboardLayoutCode(normalizedCode)).HasValue ? 2 : 1;
-            candidates.Add(new ScannedImeCandidate(displayName, category, confidence));
-        }
-
-        return candidates;
-    }
-
-    private static IEnumerable<ScannedImeCandidate> ReadTipProfileCandidates()
-    {
-        var candidates = new List<ScannedImeCandidate>();
-        CollectTipProfileNamesFromRoot(Microsoft.Win32.Registry.CurrentUser, candidates);
-        CollectTipProfileNamesFromRoot(Microsoft.Win32.Registry.LocalMachine, candidates);
-        return candidates;
-    }
-
-    private static void CollectTipProfileNamesFromRoot(Microsoft.Win32.RegistryKey root, ICollection<ScannedImeCandidate> candidates)
-    {
-        using var tipRoot = root.OpenSubKey(@"Software\Microsoft\CTF\TIP");
-        if (tipRoot is null)
-        {
-            return;
-        }
-
-        foreach (var clsid in tipRoot.GetSubKeyNames())
-        {
-            using var languageProfileKey = tipRoot.OpenSubKey($@"{clsid}\LanguageProfile");
-            if (languageProfileKey is null)
-            {
-                continue;
-            }
-
-            foreach (var langId in languageProfileKey.GetSubKeyNames())
-            {
-                if (!IsTargetLanguageProfile(langId))
-                {
-                    continue;
-                }
-
-                using var langKey = languageProfileKey.OpenSubKey(langId);
-                if (langKey is null)
-                {
-                    continue;
-                }
-
-                foreach (var profileGuid in langKey.GetSubKeyNames())
-                {
-                    var name = ResolveTipProfileDisplayName(clsid, langId, profileGuid);
-                    if (string.IsNullOrWhiteSpace(name))
-                    {
-                        continue;
-                    }
-
-                    name = NormalizeImeDisplayName(name);
-                    if (IsNoiseImeName(name))
-                    {
-                        continue;
-                    }
-
-                    var category = InferCategoryFromLangId(ParseLangIdFromTip(langId))
-                        ?? InferCategoryFromName(name)
-                        ?? ImeCategory.ChineseSimplified;
-                    var confidence = InferCategoryFromLangId(ParseLangIdFromTip(langId)).HasValue ? 3 : 1;
-                    candidates.Add(new ScannedImeCandidate(name, category, confidence));
-                }
-            }
-        }
-    }
-
-    private static bool IsTargetLanguageProfile(string langId) =>
-        IsTargetLanguageProfile(ParseLangIdFromTip(langId));
 
     private static bool IsTargetLanguageProfile(ushort? langId) => langId is
         0x0804 or // zh-CN
@@ -560,40 +431,6 @@ public sealed partial class MainPage : Page
     private static bool IsNoiseImeName(string name) =>
         name.Contains("输入体验", StringComparison.OrdinalIgnoreCase) ||
         name.Contains("Input Experience", StringComparison.OrdinalIgnoreCase);
-
-    private static ushort? ParseLangIdFromTip(string langId)
-    {
-        if (string.IsNullOrWhiteSpace(langId))
-        {
-            return null;
-        }
-
-        var value = langId.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? langId[2..] : langId;
-        if (value.Length < 4)
-        {
-            return null;
-        }
-
-        var suffix = value[^4..];
-        return ushort.TryParse(suffix, System.Globalization.NumberStyles.HexNumber, null, out var lang) ? lang : null;
-    }
-
-    private static ushort? ParseLangIdFromKeyboardLayoutCode(string code)
-    {
-        if (string.IsNullOrWhiteSpace(code))
-        {
-            return null;
-        }
-
-        var value = code.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? code[2..] : code;
-        if (value.Length < 4)
-        {
-            return null;
-        }
-
-        var suffix = value[^4..];
-        return ushort.TryParse(suffix, System.Globalization.NumberStyles.HexNumber, null, out var lang) ? lang : null;
-    }
 
     private static ImeCategory? InferCategoryFromLangId(ushort? langId) => langId switch
     {
@@ -636,78 +473,6 @@ public sealed partial class MainPage : Page
         return null;
     }
 
-    private static string? ResolveTipProfileDisplayName(string clsid, string langId, string profileGuid)
-    {
-        var relativePath = $@"Software\Microsoft\CTF\TIP\{clsid}\LanguageProfile\{langId}\{profileGuid}";
-        var candidate = ReadTipNameFromPath(Microsoft.Win32.Registry.CurrentUser, relativePath);
-        if (!string.IsNullOrWhiteSpace(candidate))
-        {
-            return candidate;
-        }
-
-        return ReadTipNameFromPath(Microsoft.Win32.Registry.LocalMachine, relativePath);
-    }
-
-    private static string? ReadTipNameFromPath(Microsoft.Win32.RegistryKey root, string relativePath)
-    {
-        using var key = root.OpenSubKey(relativePath);
-        if (key is null)
-        {
-            return null;
-        }
-
-        var description = key.GetValue("Description")?.ToString();
-        var displayDescription = key.GetValue("Display Description")?.ToString();
-
-        var resolvedDisplay = TryResolveIndirectString(displayDescription);
-        if (!string.IsNullOrWhiteSpace(resolvedDisplay))
-        {
-            return resolvedDisplay;
-        }
-
-        if (!string.IsNullOrWhiteSpace(description))
-        {
-            return description;
-        }
-
-        return displayDescription;
-    }
-
-    private static string? TryResolveIndirectString(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value) || !value.StartsWith("@", StringComparison.Ordinal))
-        {
-            return value;
-        }
-
-        var buffer = new StringBuilder(512);
-        var result = SHLoadIndirectString(value, buffer, buffer.Capacity, IntPtr.Zero);
-        if (result != 0)
-        {
-            return value;
-        }
-
-        var resolved = buffer.ToString().Trim();
-        return string.IsNullOrWhiteSpace(resolved) ? value : resolved;
-    }
-
-    private static string? ResolveLayoutDisplayName(string code)
-    {
-        using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Control\Keyboard Layouts\{code}");
-        if (key is null)
-        {
-            return null;
-        }
-
-        var imeName = key.GetValue("Ime File")?.ToString();
-        var layoutText = key.GetValue("Layout Text")?.ToString();
-        if (!string.IsNullOrWhiteSpace(layoutText))
-        {
-            return layoutText;
-        }
-
-        return !string.IsNullOrWhiteSpace(imeName) ? imeName : null;
-    }
 
     private static bool HasGameExecutable(string gameRoot)
     {
@@ -899,13 +664,6 @@ public sealed partial class MainPage : Page
 
     [DllImport("oleaut32.dll")]
     private static extern void SysFreeString(IntPtr bstr);
-
-    [DllImport("shlwapi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern int SHLoadIndirectString(
-        string pszSource,
-        StringBuilder pszOutBuf,
-        int cchOutBuf,
-        IntPtr ppvReserved);
 
     private const uint COINIT_APARTMENTTHREADED = 0x2;
     private const uint CLSCTX_INPROC_SERVER = 0x1;
