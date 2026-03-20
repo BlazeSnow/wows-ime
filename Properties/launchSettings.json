@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "wows-ime (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "wows-ime (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
