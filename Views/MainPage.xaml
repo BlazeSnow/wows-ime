@@ -28,9 +28,11 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBox x:Name="GameRootPathBox" VerticalAlignment="Center" />
-                    <Button Grid.Column="1" Click="PickFolderButton_Click" Content="选择目录" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Click="OpenFolderButton_Click" Content="打开目录" VerticalAlignment="Center" />
+                    <Button Grid.Column="2" Click="PickFolderButton_Click" Content="选择目录" VerticalAlignment="Center" />
                 </Grid>
             </StackPanel>
 
@@ -44,9 +46,11 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Text="检测到的输入法" />
-                        <Button Grid.Column="1" Click="RefreshImeButton_Click" Content="重新扫描" />
+                        <Button Grid.Column="1" Click="AddCustomImeButton_Click" Content="自定义输入法名称" />
+                        <Button Grid.Column="2" Click="RefreshImeButton_Click" Content="重新扫描" />
                     </Grid>
                     <ListView Grid.Row="1" x:Name="ImeListView" VerticalAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemsSource="{x:Bind InputMethods, Mode=OneWay}">
                         <ListView.ItemTemplate>

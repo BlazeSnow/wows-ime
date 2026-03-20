@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Linq;
@@ -51,6 +52,92 @@ public sealed partial class MainPage : Page
     private void RefreshImeButton_Click(object sender, RoutedEventArgs e)
     {
         LoadInputMethods();
+    }
+
+    private void OpenFolderButton_Click(object sender, RoutedEventArgs e)
+    {
+        var gameRoot = GameRootPathBox.Text?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(gameRoot) || !Directory.Exists(gameRoot))
+        {
+            ShowStatus("目录不存在，无法打开。", InfoBarSeverity.Warning);
+            return;
+        }
+
+        try
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                Arguments = gameRoot,
+                UseShellExecute = true
+            };
+
+            _ = Process.Start(startInfo);
+        }
+        catch (Exception ex)
+        {
+            ShowStatus($"打开目录失败：{ex.Message}", InfoBarSeverity.Error);
+        }
+    }
+
+    private async void AddCustomImeButton_Click(object sender, RoutedEventArgs e)
+    {
+        var nameBox = new TextBox
+        {
+            PlaceholderText = "请输入输入法名称"
+        };
+
+        var categoryCombo = new ComboBox
+        {
+            SelectedIndex = 0
+        };
+        categoryCombo.Items.Add(new ComboBoxItem { Content = "中文简体" });
+        categoryCombo.Items.Add(new ComboBoxItem { Content = "中文繁体" });
+        categoryCombo.Items.Add(new ComboBoxItem { Content = "日文" });
+
+        var panel = new StackPanel { Spacing = 8 };
+        panel.Children.Add(new TextBlock { Text = "输入法名称" });
+        panel.Children.Add(nameBox);
+        panel.Children.Add(new TextBlock { Text = "输入法类型" });
+        panel.Children.Add(categoryCombo);
+
+        var dialog = new ContentDialog
+        {
+            Title = "添加自定义输入法",
+            Content = panel,
+            PrimaryButtonText = "添加",
+            CloseButtonText = "取消",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot
+        };
+
+        var result = await dialog.ShowAsync();
+        if (result != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        var name = nameBox.Text?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            ShowStatus("输入法名称不能为空。", InfoBarSeverity.Warning);
+            return;
+        }
+
+        if (InputMethods.Any(item => string.Equals(item.DisplayName, name, StringComparison.OrdinalIgnoreCase)))
+        {
+            ShowStatus("该输入法名称已存在。", InfoBarSeverity.Warning);
+            return;
+        }
+
+        var newItem = new InputMethodItem(name)
+        {
+            IsSelected = true,
+            CategoryIndex = categoryCombo.SelectedIndex < 0 ? 0 : categoryCombo.SelectedIndex
+        };
+
+        InputMethods.Add(newItem);
+        ShowStatus("已添加自定义输入法。", InfoBarSeverity.Success);
     }
 
     private async void WriteConfigButton_Click(object sender, RoutedEventArgs e)
