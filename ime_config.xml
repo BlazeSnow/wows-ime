@@ -1,0 +1,60 @@
+<data>
+	<language>
+		<ChineseSimplified>
+			<imeName>微软拼音</imeName>
+			<displayName>微软拼音</displayName>
+			<Tag>GFxIME_Ch_Simp</Tag>
+			<imeName>微软五笔</imeName>
+			<displayName>微软五笔</displayName>
+			<Tag>GFxIME_Ch_Simp</Tag>
+			<imeName>搜狗拼音输入法</imeName>
+			<displayName>搜狗拼音输入法</displayName>
+			<Tag>GFxIME_Ch_Simp</Tag>
+			<imeName>中文 - QQ拼音输入法</imeName>
+			<displayName>中文 - QQ拼音输入法</displayName>
+			<Tag>GFxIME_Ch_Simp</Tag>
+			<imeName>中文 - QQ五笔输入法</imeName>
+			<displayName>中文 - QQ五笔输入法</displayName>
+			<Tag>GFxIME_Ch_Simp</Tag>
+		</ChineseSimplified>
+
+		<Japanese>
+			<imeName>微软输入法</imeName>
+			<displayName>微软输入法</displayName>
+			<Tag>GFxIME_Jp</Tag>
+		</Japanese>
+
+		<ChineseTraditional>
+			<imeName>微軟速成</imeName>
+			<displayName>微軟速成</displayName>
+			<Tag>GFxIME_Ch_Trad_Array</Tag>
+			<imeName>Microsoft 速成</imeName>
+			<displayName>Microsoft 速成</displayName>
+			<Tag>GFxIME_Ch_Trad_Array</Tag>
+			<imeName>New Quick</imeName>
+			<displayName>New Quick</displayName>
+			<Tag>GFxIME_Ch_Trad_Array</Tag>
+			<imeName>Quick</imeName>
+			<displayName>Quick</displayName>
+			<Tag>GFxIME_Ch_Trad_Array</Tag>
+			<imeName>NewPhonetic</imeName>
+			<displayName>NewPhonetic</displayName>
+			<Tag>GFxIME_Ch_Trad_Array</Tag>
+			<imeName>Microsoft Quick</imeName>
+			<displayName>Microsoft Quick</displayName>
+			<Tag>GFxIME_Ch_Trad_Array</Tag>
+			<imeName>微軟倉頡</imeName>
+			<displayName>微軟倉頡</displayName>
+			<Tag>GFxIME_Ch_Trad_Array</Tag>
+			<imeName>微軟注音</imeName>
+			<displayName>微軟注音</displayName>
+			<Tag>GFxIME_Ch_Trad_Array</Tag>
+			<imeName>香港速成_x64</imeName>
+			<displayName>香港速成_x64</displayName>
+			<Tag>GFxIME_Ch_Trad_Array</Tag>
+			<imeName>香港速成</imeName>
+			<displayName>香港速成</displayName>
+			<Tag>GFxIME_Ch_Trad_Array</Tag>
+		</ChineseTraditional>
+	</language>
+</data>
