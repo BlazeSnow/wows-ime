@@ -33,7 +33,8 @@
 
 1. 如果程序为打包状态，则存储于软件包数据根目录，类似于`%AppData%\Local\Packages\example\LocalState`
 2. 如果程序为未打包状态，则存储于`%AppData%\Local\wows-ime`
-3. 需要持久化的配置如下：
+3. 持久化配置文件名：`config.json`
+4. 需要持久化的配置如下：
    1. 游戏根目录：`game_dir`
    2. 用户自定义输入法名称与类型：`ime`的`Name`和`Category`
 
