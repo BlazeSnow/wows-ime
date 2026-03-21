@@ -6,4 +6,7 @@
   <PropertyGroup>
     <ActiveDebugProfile>wows-ime (Unpackaged)</ActiveDebugProfile>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
+  </PropertyGroup>
 </Project>

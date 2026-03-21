@@ -1,4 +1,6 @@
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Navigation;
+using WinRT.Interop;
 
 namespace wows_ime
 {
@@ -29,6 +31,7 @@ namespace wows_ime
             window ??= new Window();
             MainWindow = window;
             window.Title = "战舰世界输入法配置工具";
+            SetWindowIcon(window);
 
             if (window.Content is not Frame rootFrame)
             {
@@ -39,6 +42,28 @@ namespace wows_ime
 
             _ = rootFrame.Navigate(typeof(MainPage), e.Arguments);
             window.Activate();
+        }
+
+        private static void SetWindowIcon(Window targetWindow)
+        {
+            try
+            {
+                var hwnd = WindowNative.GetWindowHandle(targetWindow);
+                var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
+                var appWindow = AppWindow.GetFromWindowId(windowId);
+
+                var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico");
+                if (!File.Exists(iconPath))
+                {
+                    return;
+                }
+
+                appWindow.SetIcon(iconPath);
+            }
+            catch
+            {
+                // Ignore icon setup failures to avoid affecting startup flow.
+            }
         }
 
         /// <summary>
