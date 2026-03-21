@@ -23,3 +23,7 @@
 Copyright © 2026 BlazeSnow. 保留所有权利。
 
 以GNU Affero General Public License v3.0的条款发布。
+
+## 六、更新日志
+
+更新日志见：<https://github.com/BlazeSnow/wows-ime/blob/main/CHANGELOG.md>
