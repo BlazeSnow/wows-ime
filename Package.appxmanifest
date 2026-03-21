@@ -8,25 +8,28 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="6a3951db-8ec6-4a9b-ad9a-5f8f8a73c957"
-    Publisher="CN=User Name"
-    Version="1.0.0.0" />
+    Name="BlazeSnow.WOWS-IME"
+    Publisher="CN=C171AF55-419C-4E73-B34E-CB98C8F1EB78"
+    Version="0.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="6a3951db-8ec6-4a9b-ad9a-5f8f8a73c957" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="6a3951db-8ec6-4a9b-ad9a-5f8f8a73c957"
+    PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 
   <Properties>
     <DisplayName>wows-ime</DisplayName>
-    <PublisherDisplayName>User Name</PublisherDisplayName>
+    <PublisherDisplayName>BlazeSnow</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
   <Dependencies>
-    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0" />
-    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0" />
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.17763.0"
+      MaxVersionTested="10.0.19041.0" />
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0"
+      MaxVersionTested="10.0.19041.0" />
   </Dependencies>
 
   <Resources>
-    <Resource Language="x-generate"/>
+    <Resource Language="x-generate" />
   </Resources>
 
   <Applications>
@@ -39,7 +42,8 @@
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png" />
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"
+          Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png" />
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
         <uap:LockScreen BadgeLogo="Assets\BadgeLogo.png" Notification="badgeAndTileText" />
       </uap:VisualElements>
