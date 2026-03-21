@@ -15,6 +15,7 @@
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>wows_ime</RootNamespace>
+        <DefaultLanguage>zh-CN</DefaultLanguage>
 
         <!-- App Options -->
         <UseRidGraph>true</UseRidGraph>
