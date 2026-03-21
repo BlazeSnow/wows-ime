@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Xml.Linq;
 using Microsoft.UI.Xaml.Controls;
 using Windows.Storage;
@@ -23,7 +24,6 @@ public sealed partial class MainPage : Page
     private const string TagTraditional = "GFxIME_Ch_Trad_Array";
     private const string TagJapanese = "GFxIME_Jp";
     private string? lastScanWarning;
-    private readonly JsonSerializerOptions jsonOptions = new() { WriteIndented = true };
 
     public ObservableCollection<InputMethodItem> InputMethods { get; } = new();
 
@@ -663,7 +663,7 @@ public sealed partial class MainPage : Page
             }
 
             var json = File.ReadAllText(path, Encoding.UTF8);
-            return JsonSerializer.Deserialize<AppSettings>(json, jsonOptions);
+            return JsonSerializer.Deserialize(json, AppJsonContext.Default.AppSettings);
         }
         catch
         {
@@ -695,7 +695,7 @@ public sealed partial class MainPage : Page
                 Directory.CreateDirectory(directory);
             }
 
-            var json = JsonSerializer.Serialize(settings, jsonOptions);
+            var json = JsonSerializer.Serialize(settings, AppJsonContext.Default.AppSettings);
             File.WriteAllText(path, json, new UTF8Encoding(false));
         }
         catch
@@ -908,6 +908,12 @@ public sealed class SavedIme
 {
     public string? Name { get; set; }
     public string Category { get; set; } = nameof(ImeCategory.ChineseSimplified);
+}
+
+[JsonSourceGenerationOptions(WriteIndented = true)]
+[JsonSerializable(typeof(AppSettings))]
+internal partial class AppJsonContext : JsonSerializerContext
+{
 }
 
 [StructLayout(LayoutKind.Sequential)]
