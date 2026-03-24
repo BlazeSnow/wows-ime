@@ -91,6 +91,11 @@
         <None Remove="wows-ime.slnx" />
     </ItemGroup>
 
+    <ItemGroup Condition="'$(Configuration)' == 'Release'">
+        <TrimmerRootAssembly Include="WinRT.Runtime" />
+        <TrimmerRootAssembly Include="Microsoft.WinUI" />
+    </ItemGroup>
+
     <ItemGroup>
         <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.*" />
         <PackageReference Include="Microsoft.Web.WebView2" Version="1.*" />
