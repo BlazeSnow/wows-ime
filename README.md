@@ -8,7 +8,9 @@
 
 ## 二、如何下载
 
-软件提交中……
+<a href="https://apps.microsoft.com/detail/9P0R5GM2PTKW" target="_blank">
+  <img src="https://get.microsoft.com/images/zh-cn%20dark.svg" alt="从 Microsoft 获取" />
+</a>
 
 ## 三、软件截图
 
