@@ -1,5 +1,7 @@
+using System.Text;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Navigation;
+using Windows.Storage;
 using WinRT.Interop;
 
 namespace wows_ime
@@ -19,6 +21,9 @@ namespace wows_ime
         public App()
         {
             this.InitializeComponent();
+            this.UnhandledException += App_UnhandledException;
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
         }
 
         /// <summary>
@@ -74,6 +79,66 @@ namespace wows_ime
         void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
         {
             throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
+        }
+
+        private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+        {
+            WriteCrashLog("XamlUnhandledException", e.Exception);
+        }
+
+        private void CurrentDomain_UnhandledException(object? sender, System.UnhandledExceptionEventArgs e)
+        {
+            WriteCrashLog("AppDomainUnhandledException", e.ExceptionObject as Exception);
+        }
+
+        private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+        {
+            WriteCrashLog("TaskSchedulerUnobservedTaskException", e.Exception);
+        }
+
+        private static void WriteCrashLog(string source, Exception? ex)
+        {
+            try
+            {
+                var logPath = GetCrashLogPath();
+                var directory = Path.GetDirectoryName(logPath);
+                if (!string.IsNullOrWhiteSpace(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                var text = new StringBuilder()
+                    .AppendLine("====")
+                    .AppendLine($"Time: {DateTimeOffset.Now:O}")
+                    .AppendLine($"Source: {source}")
+                    .AppendLine($"ExceptionType: {ex?.GetType().FullName}")
+                    .AppendLine($"Message: {ex?.Message}")
+                    .AppendLine("StackTrace:")
+                    .AppendLine(ex?.ToString())
+                    .AppendLine()
+                    .ToString();
+
+                File.AppendAllText(logPath, text, new UTF8Encoding(false));
+            }
+            catch
+            {
+                // Do not throw from crash logger.
+            }
+        }
+
+        private static string GetCrashLogPath()
+        {
+            try
+            {
+                return Path.Combine(ApplicationData.Current.LocalFolder.Path, "crash.log");
+            }
+            catch
+            {
+                return Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "wows-ime",
+                    "crash.log");
+            }
         }
     }
 }
