@@ -1,7 +1,9 @@
 using System.Text;
+using Microsoft.Win32;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.Storage;
+using Windows.UI.ViewManagement;
 using WinRT.Interop;
 
 namespace wows_ime
@@ -12,6 +14,7 @@ namespace wows_ime
     public partial class App : Application
     {
         private Window window = Window.Current;
+        private UISettings? uiSettings;
         public static Window? MainWindow { get; private set; }
 
         /// <summary>
@@ -37,6 +40,8 @@ namespace wows_ime
             MainWindow = window;
             window.Title = "战舰世界输入法配置工具";
             SetWindowIcon(window);
+            ApplySystemTitleBarTheme(window);
+            EnsureThemeListener();
 
             if (window.Content is not Frame rootFrame)
             {
@@ -68,6 +73,56 @@ namespace wows_ime
             catch
             {
                 // Ignore icon setup failures to avoid affecting startup flow.
+            }
+        }
+
+        private void EnsureThemeListener()
+        {
+            if (uiSettings is not null)
+            {
+                return;
+            }
+
+            uiSettings = new UISettings();
+            uiSettings.ColorValuesChanged += OnSystemColorValuesChanged;
+        }
+
+        private void OnSystemColorValuesChanged(UISettings sender, object args)
+        {
+            var targetWindow = MainWindow;
+            if (targetWindow is null)
+            {
+                return;
+            }
+
+            _ = targetWindow.DispatcherQueue.TryEnqueue(() => ApplySystemTitleBarTheme(targetWindow));
+        }
+
+        private static void ApplySystemTitleBarTheme(Window targetWindow)
+        {
+            try
+            {
+                var hwnd = WindowNative.GetWindowHandle(targetWindow);
+                var useDark = IsSystemDarkModeEnabled() ? 1 : 0;
+                _ = DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDark, sizeof(int));
+            }
+            catch
+            {
+                // Ignore title bar theme failures to avoid affecting startup flow.
+            }
+        }
+
+        private static bool IsSystemDarkModeEnabled()
+        {
+            try
+            {
+                using var personalizeKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
+                var value = personalizeKey?.GetValue("AppsUseLightTheme");
+                return value is int lightThemeEnabled && lightThemeEnabled == 0;
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -140,5 +195,14 @@ namespace wows_ime
                     "crash.log");
             }
         }
+
+        [System.Runtime.InteropServices.DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(
+            IntPtr hwnd,
+            int dwAttribute,
+            ref int pvAttribute,
+            int cbAttribute);
+
+        private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
     }
 }
