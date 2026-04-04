@@ -8,7 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
     <Page.Content>
-        <Grid Padding="24" RowSpacing="12">
+        <Grid Padding="24" RowSpacing="12" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -18,12 +18,12 @@
             </Grid.RowDefinitions>
 
             <StackPanel Spacing="6">
-                <TextBlock FontSize="24" FontWeight="SemiBold" Text="战舰世界输入法配置工具" />
-                <TextBlock Text="扫描本机输入法，勾选并指定类型后写入游戏目录的 ime_config.xml。" TextWrapping="WrapWholeWords" />
+                <TextBlock x:Uid="MainTitleText" FontSize="24" FontWeight="SemiBold" />
+                <TextBlock x:Uid="MainSubtitleText" TextWrapping="WrapWholeWords" />
             </StackPanel>
 
             <StackPanel Grid.Row="1" Spacing="6">
-                <TextBlock Text="游戏根目录" />
+                <TextBlock x:Uid="GameRootLabel" />
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -41,8 +41,8 @@
                         <x:String>C:\Games\Korabli</x:String>
                         <x:String>C:\Games\World_of_Warships_CN360</x:String>
                     </ComboBox>
-                    <Button Grid.Column="1" Click="OpenFolderButton_Click" Content="打开目录" VerticalAlignment="Center" />
-                    <Button Grid.Column="2" Click="PickFolderButton_Click" Content="选择目录" VerticalAlignment="Center" />
+                    <Button x:Uid="OpenFolderButton" Grid.Column="1" Click="OpenFolderButton_Click" VerticalAlignment="Center" />
+                    <Button x:Uid="PickFolderButton" Grid.Column="2" Click="PickFolderButton_Click" VerticalAlignment="Center" />
                 </Grid>
             </StackPanel>
 
@@ -58,9 +58,9 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Text="检测到的输入法" />
-                        <Button Grid.Column="1" Click="AddCustomImeButton_Click" Content="自定义输入法名称" />
-                        <Button Grid.Column="2" Click="RefreshImeButton_Click" Content="重新扫描" />
+                        <TextBlock x:Uid="ImeSectionTitle" VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" />
+                        <Button x:Uid="AddCustomImeButton" Grid.Column="1" Click="AddCustomImeButton_Click" />
+                        <Button x:Uid="RefreshImeButton" Grid.Column="2" Click="RefreshImeButton_Click" />
                     </Grid>
                     <ListView Grid.Row="1" x:Name="ImeListView" VerticalAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemsSource="{x:Bind InputMethods, Mode=OneWay}">
                         <ListView.ItemTemplate>
@@ -82,14 +82,14 @@
                                         IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
                                     <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind DisplayName}" />
                                     <ComboBox Grid.Column="2" SelectedIndex="{x:Bind CategoryIndex, Mode=TwoWay}">
-                                        <ComboBoxItem Content="中文简体" />
-                                        <ComboBoxItem Content="中文繁体" />
-                                        <ComboBoxItem Content="日文" />
+                                        <ComboBoxItem x:Uid="ImeCategorySimplifiedItem" />
+                                        <ComboBoxItem x:Uid="ImeCategoryTraditionalItem" />
+                                        <ComboBoxItem x:Uid="ImeCategoryJapaneseItem" />
                                     </ComboBox>
                                     <Button
+                                        x:Uid="DeleteCustomImeButtonTemplate"
                                         Grid.Column="3"
                                         Click="DeleteCustomImeButton_Click"
-                                        Content="删除"
                                         HorizontalAlignment="Stretch"
                                         Tag="{x:Bind}"
                                         Visibility="{x:Bind DeleteButtonVisibility, Mode=OneWay}" />
@@ -101,7 +101,7 @@
             </Border>
 
             <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-                <Button Click="WriteConfigButton_Click" Content="写入配置" Style="{StaticResource PrimaryAction}" />
+                <Button x:Uid="WriteConfigButton" Click="WriteConfigButton_Click" Style="{StaticResource PrimaryAction}" />
             </StackPanel>
 
             <InfoBar Grid.Row="4" x:Name="StatusInfoBar" IsOpen="False" IsClosable="False" Margin="0,4,0,0" />

@@ -1,11 +1,13 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
 using Microsoft.UI.Xaml.Controls;
+using Windows.ApplicationModel.Resources;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
@@ -24,15 +26,19 @@ public sealed partial class MainPage : Page
     private const string TagTraditional = "GFxIME_Ch_Trad_Array";
     private const string TagJapanese = "GFxIME_Jp";
     private string? lastScanWarning;
+    private bool suppressSettingsSave;
+    private static readonly ResourceLoader ResourceLoader = new();
 
     public ObservableCollection<InputMethodItem> InputMethods { get; } = new();
 
     public MainPage()
     {
+        suppressSettingsSave = true;
         InitializeComponent();
         GameRootPathBox.Text = LoadSavedGameDir() ?? SteamDefaultPath;
         LoadInputMethods();
         LoadSavedCustomIme();
+        suppressSettingsSave = false;
     }
 
     private async void PickFolderButton_Click(object sender, RoutedEventArgs e)
@@ -42,7 +48,7 @@ public sealed partial class MainPage : Page
 
         if (App.MainWindow is null)
         {
-            ShowStatus("窗口句柄不可用，无法打开目录选择器。", InfoBarSeverity.Error);
+            ShowStatus(SR("Status/WindowHandleUnavailable"), InfoBarSeverity.Error);
             return;
         }
 
@@ -78,7 +84,7 @@ public sealed partial class MainPage : Page
         var gameRoot = GameRootPathBox.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(gameRoot) || !Directory.Exists(gameRoot))
         {
-            ShowStatus("目录不存在，无法打开。", InfoBarSeverity.Warning);
+            ShowStatus(SR("Status/DirectoryNotExistsCannotOpen"), InfoBarSeverity.Warning);
             return;
         }
 
@@ -87,7 +93,7 @@ public sealed partial class MainPage : Page
             var startInfo = new ProcessStartInfo
             {
                 FileName = "explorer.exe",
-                Arguments = gameRoot,
+                Arguments = $"\"{gameRoot}\"",
                 UseShellExecute = true
             };
 
@@ -95,7 +101,7 @@ public sealed partial class MainPage : Page
         }
         catch (Exception ex)
         {
-            ShowStatus($"打开目录失败：{ex.Message}", InfoBarSeverity.Error);
+            ShowStatus(SRF("Status/OpenDirectoryFailed", ex.Message), InfoBarSeverity.Error);
         }
     }
 
@@ -103,29 +109,29 @@ public sealed partial class MainPage : Page
     {
         var nameBox = new TextBox
         {
-            PlaceholderText = "请输入输入法名称"
+            PlaceholderText = SR("Dialog/AddCustomIme/Placeholder")
         };
 
         var categoryCombo = new ComboBox
         {
             SelectedIndex = 0
         };
-        categoryCombo.Items.Add(new ComboBoxItem { Content = "中文简体" });
-        categoryCombo.Items.Add(new ComboBoxItem { Content = "中文繁体" });
-        categoryCombo.Items.Add(new ComboBoxItem { Content = "日文" });
+        categoryCombo.Items.Add(new ComboBoxItem { Content = SR("Category/ChineseSimplified") });
+        categoryCombo.Items.Add(new ComboBoxItem { Content = SR("Category/ChineseTraditional") });
+        categoryCombo.Items.Add(new ComboBoxItem { Content = SR("Category/Japanese") });
 
         var panel = new StackPanel { Spacing = 8 };
-        panel.Children.Add(new TextBlock { Text = "输入法名称" });
+        panel.Children.Add(new TextBlock { Text = SR("Dialog/AddCustomIme/NameLabel") });
         panel.Children.Add(nameBox);
-        panel.Children.Add(new TextBlock { Text = "输入法类型" });
+        panel.Children.Add(new TextBlock { Text = SR("Dialog/AddCustomIme/CategoryLabel") });
         panel.Children.Add(categoryCombo);
 
         var dialog = new ContentDialog
         {
-            Title = "添加自定义输入法",
+            Title = SR("Dialog/AddCustomIme/Title"),
             Content = panel,
-            PrimaryButtonText = "添加",
-            CloseButtonText = "取消",
+            PrimaryButtonText = SR("Dialog/AddCustomIme/PrimaryButton"),
+            CloseButtonText = SR("Dialog/Common/Cancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot
         };
@@ -139,13 +145,13 @@ public sealed partial class MainPage : Page
         var name = nameBox.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(name))
         {
-            ShowStatus("输入法名称不能为空。", InfoBarSeverity.Warning);
+            ShowStatus(SR("Status/ImeNameEmpty"), InfoBarSeverity.Warning);
             return;
         }
 
         if (InputMethods.Any(item => string.Equals(item.DisplayName, name, StringComparison.OrdinalIgnoreCase)))
         {
-            ShowStatus("该输入法名称已存在。", InfoBarSeverity.Warning);
+            ShowStatus(SR("Status/ImeNameExists"), InfoBarSeverity.Warning);
             return;
         }
 
@@ -156,7 +162,7 @@ public sealed partial class MainPage : Page
         };
 
         InputMethods.Add(newItem);
-        ShowStatus("已添加自定义输入法。", InfoBarSeverity.Success);
+        ShowStatus(SR("Status/CustomImeAdded"), InfoBarSeverity.Success);
         SaveSettings();
     }
 
@@ -173,7 +179,7 @@ public sealed partial class MainPage : Page
         }
 
         _ = InputMethods.Remove(item);
-        ShowStatus("已删除自定义输入法。", InfoBarSeverity.Success);
+        ShowStatus(SR("Status/CustomImeDeleted"), InfoBarSeverity.Success);
         SaveSettings();
     }
 
@@ -182,27 +188,27 @@ public sealed partial class MainPage : Page
         var selectedIme = InputMethods.Where(item => item.IsSelected).ToList();
         if (selectedIme.Count == 0)
         {
-            ShowStatus("请至少勾选一个输入法。", InfoBarSeverity.Warning);
+            ShowStatus(SR("Status/SelectAtLeastOneIme"), InfoBarSeverity.Warning);
             return;
         }
 
         var gameRoot = GameRootPathBox.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(gameRoot) || !Directory.Exists(gameRoot))
         {
-            ShowStatus("游戏根目录不存在，请先选择有效目录。", InfoBarSeverity.Error);
+            ShowStatus(SR("Status/GameRootInvalid"), InfoBarSeverity.Error);
             return;
         }
 
         if (!HasGameExecutable(gameRoot))
         {
-            ShowStatus("所选目录未找到 WorldOfWarships.exe 或 Korabli.exe。", InfoBarSeverity.Error);
+            ShowStatus(SR("Status/GameExeNotFound"), InfoBarSeverity.Error);
             return;
         }
 
         var targetFiles = ResolveTargetConfigFiles(gameRoot);
         if (targetFiles.Count == 0)
         {
-            ShowStatus("未在游戏目录的 bin 下找到数字版本目录，无法确定写入位置。", InfoBarSeverity.Error);
+            ShowStatus(SR("Status/BinVersionDirectoryNotFound"), InfoBarSeverity.Error);
             return;
         }
 
@@ -212,7 +218,7 @@ public sealed partial class MainPage : Page
             var shouldOverwrite = await ConfirmOverwriteAsync(existing.Count);
             if (!shouldOverwrite)
             {
-                ShowStatus("已取消写入。", InfoBarSeverity.Informational);
+                ShowStatus(SR("Status/WriteCanceled"), InfoBarSeverity.Informational);
                 return;
             }
         }
@@ -221,7 +227,7 @@ public sealed partial class MainPage : Page
             var shouldAdd = await ConfirmAddAsync(targetFiles.Count);
             if (!shouldAdd)
             {
-                ShowStatus("已取消写入。", InfoBarSeverity.Informational);
+                ShowStatus(SR("Status/WriteCanceled"), InfoBarSeverity.Informational);
                 return;
             }
         }
@@ -242,12 +248,12 @@ public sealed partial class MainPage : Page
                 await writer.WriteAsync(document.ToString());
             }
 
-            ShowStatus($"写入成功，共更新 {targetFiles.Count} 个配置文件。", InfoBarSeverity.Success);
+            ShowStatus(SRF("Status/WriteSucceededWithCount", targetFiles.Count), InfoBarSeverity.Success);
             SaveSettings();
         }
         catch (Exception ex)
         {
-            ShowStatus($"写入失败：{ex.Message}", InfoBarSeverity.Error);
+            ShowStatus(SRF("Status/WriteFailed", ex.Message), InfoBarSeverity.Error);
         }
     }
 
@@ -265,11 +271,11 @@ public sealed partial class MainPage : Page
 
         if (InputMethods.Count == 0 && !string.IsNullOrWhiteSpace(lastScanWarning))
         {
-            ShowStatus($"扫描完成，未发现输入法。TSF错误：{lastScanWarning}", InfoBarSeverity.Warning);
+            ShowStatus(SRF("Status/ScanCompletedNoImeWithWarning", lastScanWarning), InfoBarSeverity.Warning);
             return;
         }
 
-        ShowStatus($"扫描完成，共发现 {InputMethods.Count} 个输入法。", InfoBarSeverity.Success);
+        ShowStatus(SRF("Status/ScanCompletedWithCount", InputMethods.Count), InfoBarSeverity.Success);
     }
 
     private static IEnumerable<ScannedImeCandidate> ReadImeCandidatesFromRegistry(out string? warning)
@@ -292,7 +298,7 @@ public sealed partial class MainPage : Page
         var shouldUninitialize = coInitHr == 0 || coInitHr == 1;
         if (coInitHr < 0 && coInitHr != unchecked((int)0x80010106))
         {
-            warning = $"CoInitializeEx 失败: 0x{coInitHr:X8}";
+            warning = SRF("Tsf/CoInitializeFailed", $"0x{coInitHr:X8}");
             return candidates;
         }
 
@@ -301,7 +307,7 @@ public sealed partial class MainPage : Page
             var profilesPtr = CreateInputProcessorProfilesCom();
             if (profilesPtr == IntPtr.Zero)
             {
-                warning = "无法创建 TF_InputProcessorProfiles COM 对象。";
+                warning = SR("Tsf/CreateProfilesObjectFailed");
                 return candidates;
             }
 
@@ -311,8 +317,8 @@ public sealed partial class MainPage : Page
                 if (hr < 0 || langPtr == IntPtr.Zero || langCount == 0)
                 {
                     warning = hr < 0
-                        ? $"GetLanguageList 失败: 0x{hr:X8}"
-                        : "GetLanguageList 返回空语言列表";
+                        ? SRF("Tsf/GetLanguageListFailed", $"0x{hr:X8}")
+                        : SR("Tsf/GetLanguageListEmpty");
                     return candidates;
                 }
 
@@ -392,12 +398,12 @@ public sealed partial class MainPage : Page
         }
         catch (COMException ex)
         {
-            warning = $"COMException 0x{ex.HResult:X8}: {ex.Message}";
+            warning = SRF("Tsf/ComException", $"0x{ex.HResult:X8}", ex.Message);
             return candidates;
         }
         catch (Exception ex)
         {
-            warning = $"TSF异常: {ex.Message}";
+            warning = SRF("Tsf/GenericException", ex.Message);
             return candidates;
         }
         finally
@@ -466,9 +472,9 @@ public sealed partial class MainPage : Page
     private static string NormalizeImeDisplayName(string name)
     {
         if (name.Contains("wetype", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(name, "微信输入法", StringComparison.OrdinalIgnoreCase))
+            string.Equals(name, SR("Ime/Weixin"), StringComparison.OrdinalIgnoreCase))
         {
-            return "微信输入法";
+            return SR("Ime/Weixin");
         }
 
         return name.Trim();
@@ -511,7 +517,7 @@ public sealed partial class MainPage : Page
 
         if (name.Contains("拼音", StringComparison.OrdinalIgnoreCase) ||
             name.Contains("五笔", StringComparison.OrdinalIgnoreCase) ||
-            name.Contains("微信输入法", StringComparison.OrdinalIgnoreCase))
+            name.Contains(SR("Ime/Weixin"), StringComparison.OrdinalIgnoreCase))
         {
             return ImeCategory.ChineseSimplified;
         }
@@ -587,10 +593,10 @@ public sealed partial class MainPage : Page
     {
         var dialog = new ContentDialog
         {
-            Title = "发现已有配置文件",
-            Content = $"检测到 {existingCount} 个已有 ime_config.xml，是否覆盖？",
-            PrimaryButtonText = "覆盖",
-            CloseButtonText = "取消",
+            Title = SR("Dialog/Overwrite/Title"),
+            Content = SRF("Dialog/Overwrite/Content", existingCount),
+            PrimaryButtonText = SR("Dialog/Overwrite/PrimaryButton"),
+            CloseButtonText = SR("Dialog/Common/Cancel"),
             DefaultButton = ContentDialogButton.Close,
             XamlRoot = XamlRoot
         };
@@ -603,10 +609,10 @@ public sealed partial class MainPage : Page
     {
         var dialog = new ContentDialog
         {
-            Title = "未发现配置文件",
-            Content = $"将新增 {targetCount} 个 ime_config.xml，是否继续？",
-            PrimaryButtonText = "新增",
-            CloseButtonText = "取消",
+            Title = SR("Dialog/AddConfig/Title"),
+            Content = SRF("Dialog/AddConfig/Content", targetCount),
+            PrimaryButtonText = SR("Dialog/AddConfig/PrimaryButton"),
+            CloseButtonText = SR("Dialog/Common/Cancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot
         };
@@ -673,6 +679,11 @@ public sealed partial class MainPage : Page
 
     private void SaveSettings()
     {
+        if (suppressSettingsSave)
+        {
+            return;
+        }
+
         try
         {
             var settings = new AppSettings
@@ -740,6 +751,17 @@ public sealed partial class MainPage : Page
         StatusInfoBar.Severity = severity;
         StatusInfoBar.Message = message;
         StatusInfoBar.IsOpen = true;
+    }
+
+    private static string SR(string key)
+    {
+        var value = ResourceLoader.GetString(key);
+        return string.IsNullOrEmpty(value) ? key : value;
+    }
+
+    private static string SRF(string key, params object[] args)
+    {
+        return string.Format(CultureInfo.CurrentUICulture, SR(key), args);
     }
 
     private static int GetLanguageList(IntPtr profilesPtr, out IntPtr langPtr, out uint langCount)
@@ -925,3 +947,5 @@ internal struct TF_LANGUAGEPROFILE
     public int fActive;
     public Guid guidProfile;
 }
+
+

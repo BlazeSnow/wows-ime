@@ -13,12 +13,24 @@
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
                 <!-- Other merged dictionaries here -->
             </ResourceDictionary.MergedDictionaries>
-            <!-- Other app resources here -->
-            <Color x:Key="Primary">#512BD4</Color>
 
-            <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}" />
-            <SolidColorBrush x:Key="WhiteBrush" Color="White" />
-            <SolidColorBrush x:Key="BlackBrush" Color="Black" />
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Default">
+                    <Color x:Key="Primary">#512BD4</Color>
+                    <Color x:Key="PrimaryForeground">#FFFFFFFF</Color>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Light">
+                    <Color x:Key="Primary">#512BD4</Color>
+                    <Color x:Key="PrimaryForeground">#FFFFFFFF</Color>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <Color x:Key="Primary">#7B61FF</Color>
+                    <Color x:Key="PrimaryForeground">#FFFFFFFF</Color>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+
+            <SolidColorBrush x:Key="PrimaryBrush" Color="{ThemeResource Primary}" />
+            <SolidColorBrush x:Key="PrimaryForegroundBrush" Color="{ThemeResource PrimaryForeground}" />
 
             <x:Double x:Key="AppFontSize">14</x:Double>
 
@@ -42,7 +54,7 @@
                 <Setter Property="CornerRadius"
                         Value="8" />
                 <Setter Property="Foreground"
-                        Value="{StaticResource WhiteBrush}" />
+                        Value="{StaticResource PrimaryForegroundBrush}" />
             </Style>
         </ResourceDictionary>
     </Application.Resources>
