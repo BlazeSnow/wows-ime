@@ -24,15 +24,18 @@ public sealed partial class MainPage : Page
     private const string TagTraditional = "GFxIME_Ch_Trad_Array";
     private const string TagJapanese = "GFxIME_Jp";
     private string? lastScanWarning;
+    private bool suppressSettingsSave;
 
     public ObservableCollection<InputMethodItem> InputMethods { get; } = new();
 
     public MainPage()
     {
+        suppressSettingsSave = true;
         InitializeComponent();
         GameRootPathBox.Text = LoadSavedGameDir() ?? SteamDefaultPath;
         LoadInputMethods();
         LoadSavedCustomIme();
+        suppressSettingsSave = false;
     }
 
     private async void PickFolderButton_Click(object sender, RoutedEventArgs e)
@@ -87,7 +90,7 @@ public sealed partial class MainPage : Page
             var startInfo = new ProcessStartInfo
             {
                 FileName = "explorer.exe",
-                Arguments = gameRoot,
+                Arguments = $"\"{gameRoot}\"",
                 UseShellExecute = true
             };
 
@@ -673,6 +676,11 @@ public sealed partial class MainPage : Page
 
     private void SaveSettings()
     {
+        if (suppressSettingsSave)
+        {
+            return;
+        }
+
         try
         {
             var settings = new AppSettings
