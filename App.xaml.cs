@@ -1,7 +1,8 @@
-using System.Text;
+﻿using System.Text;
 using Microsoft.Win32;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Navigation;
+using Windows.ApplicationModel.Resources;
 using Windows.Storage;
 using Windows.UI.ViewManagement;
 using WinRT.Interop;
@@ -15,6 +16,7 @@ namespace wows_ime
     {
         private Window window = Window.Current;
         private UISettings? uiSettings;
+        private static readonly ResourceLoader ResourceLoader = new();
         public static Window? MainWindow { get; private set; }
 
         /// <summary>
@@ -38,7 +40,7 @@ namespace wows_ime
         {
             window ??= new Window();
             MainWindow = window;
-            window.Title = "战舰世界输入法配置工具";
+            window.Title = SR("App/Title");
             SetWindowIcon(window);
             ApplySystemTitleBarTheme(window);
             EnsureThemeListener();
@@ -204,5 +206,12 @@ namespace wows_ime
             int cbAttribute);
 
         private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+
+        private static string SR(string key)
+        {
+            var value = ResourceLoader.GetString(key);
+            return string.IsNullOrEmpty(value) ? key : value;
+        }
     }
 }
+
