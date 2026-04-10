@@ -31,6 +31,7 @@ public sealed partial class MainPage : Page
 
     public ObservableCollection<InputMethodItem> InputMethods { get; } = new();
     public ObservableCollection<GamePathOption> GamePathOptions { get; } = new();
+    public string CurrentSelectedGamePathText { get; private set; } = string.Empty;
 
     public MainPage()
     {
@@ -740,6 +741,9 @@ public sealed partial class MainPage : Page
         {
             item.IsSelected = ReferenceEquals(item, option);
         }
+
+        CurrentSelectedGamePathText = option?.Path ?? string.Empty;
+        Bindings.Update();
     }
 
     private string GetSelectedGameRootPath()
