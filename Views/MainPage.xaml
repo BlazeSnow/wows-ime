@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <Page
     x:Class="wows_ime.Views.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -6,14 +6,15 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:wows_ime.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d">
     <Page.Content>
         <Grid Padding="24" RowSpacing="12" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
@@ -22,9 +23,11 @@
                 <TextBlock x:Uid="MainSubtitleText" TextWrapping="WrapWholeWords" />
             </StackPanel>
 
-            <StackPanel Grid.Row="1" Spacing="6">
-                <TextBlock x:Uid="GameRootLabel" />
-                <Grid ColumnSpacing="8">
+            <toolkit:SettingsCard Grid.Row="1">
+                <toolkit:SettingsCard.Header>
+                    <TextBlock x:Uid="GameRootLabel" FontWeight="SemiBold" />
+                </toolkit:SettingsCard.Header>
+                <Grid ColumnSpacing="8" Margin="0,8,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -44,14 +47,10 @@
                     <Button x:Uid="OpenFolderButton" Grid.Column="1" Click="OpenFolderButton_Click" VerticalAlignment="Center" />
                     <Button x:Uid="PickFolderButton" Grid.Column="2" Click="PickFolderButton_Click" VerticalAlignment="Center" />
                 </Grid>
-            </StackPanel>
+            </toolkit:SettingsCard>
 
-            <Border Grid.Row="2" Padding="12" BorderBrush="{ThemeResource SystemControlForegroundBaseMediumBrush}" BorderThickness="1" CornerRadius="8">
-                <Grid RowSpacing="8">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
+            <toolkit:SettingsExpander Grid.Row="2" IsExpanded="True">
+                <toolkit:SettingsExpander.Header>
                     <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -62,45 +61,73 @@
                         <Button x:Uid="AddCustomImeButton" Grid.Column="1" Click="AddCustomImeButton_Click" />
                         <Button x:Uid="RefreshImeButton" Grid.Column="2" Click="RefreshImeButton_Click" />
                     </Grid>
-                    <ListView Grid.Row="1" x:Name="ImeListView" VerticalAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemsSource="{x:Bind InputMethods, Mode=OneWay}">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="local:InputMethodItem">
-                                <Grid Padding="0,4" ColumnSpacing="12">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="56" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="180" />
-                                        <ColumnDefinition Width="80" />
-                                    </Grid.ColumnDefinitions>
-                                    <CheckBox
-                                        MinWidth="0"
-                                        MinHeight="0"
-                                        Padding="0"
-                                        Margin="0"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
-                                    <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind DisplayName}" />
-                                    <ComboBox Grid.Column="2" SelectedIndex="{x:Bind CategoryIndex, Mode=TwoWay}">
-                                        <ComboBoxItem x:Uid="ImeCategorySimplifiedItem" />
-                                        <ComboBoxItem x:Uid="ImeCategoryTraditionalItem" />
-                                        <ComboBoxItem x:Uid="ImeCategoryJapaneseItem" />
-                                    </ComboBox>
-                                    <Button
-                                        x:Uid="DeleteCustomImeButtonTemplate"
-                                        Grid.Column="3"
-                                        Click="DeleteCustomImeButton_Click"
-                                        HorizontalAlignment="Stretch"
-                                        Tag="{x:Bind}"
-                                        Visibility="{x:Bind DeleteButtonVisibility, Mode=OneWay}" />
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </Grid>
-            </Border>
+                </toolkit:SettingsExpander.Header>
 
-            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <toolkit:SettingsExpander.Items>
+                    <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
+                        <Grid Margin="0,8,0,0" RowSpacing="6">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="56" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="180" />
+                                <ColumnDefinition Width="80" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Uid="ImeTableHeaderName" Grid.Column="1" FontWeight="SemiBold" />
+                            <TextBlock x:Uid="ImeTableHeaderCategory" Grid.Column="2" FontWeight="SemiBold" />
+                            <TextBlock x:Uid="ImeTableHeaderAction" Grid.Column="3" FontWeight="SemiBold" />
+
+                            <ListView
+                                Grid.Row="1"
+                                Grid.ColumnSpan="4"
+                                x:Name="ImeListView"
+                                VerticalAlignment="Stretch"
+                                HorizontalAlignment="Stretch"
+                                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                ItemsSource="{x:Bind InputMethods, Mode=OneWay}">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="local:InputMethodItem">
+                                        <Grid Padding="0,4" ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="56" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="180" />
+                                                <ColumnDefinition Width="80" />
+                                            </Grid.ColumnDefinitions>
+                                            <CheckBox
+                                                MinWidth="0"
+                                                MinHeight="0"
+                                                Padding="0"
+                                                Margin="0"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
+                                            <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind DisplayName}" />
+                                            <ComboBox Grid.Column="2" SelectedIndex="{x:Bind CategoryIndex, Mode=TwoWay}">
+                                                <ComboBoxItem x:Uid="ImeCategorySimplifiedItem" />
+                                                <ComboBoxItem x:Uid="ImeCategoryTraditionalItem" />
+                                                <ComboBoxItem x:Uid="ImeCategoryJapaneseItem" />
+                                            </ComboBox>
+                                            <Button
+                                                x:Uid="DeleteCustomImeButtonTemplate"
+                                                Grid.Column="3"
+                                                Click="DeleteCustomImeButton_Click"
+                                                HorizontalAlignment="Stretch"
+                                                Tag="{x:Bind}"
+                                                Visibility="{x:Bind DeleteButtonVisibility, Mode=OneWay}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </Grid>
+                    </toolkit:SettingsCard>
+                </toolkit:SettingsExpander.Items>
+            </toolkit:SettingsExpander>
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Spacing="8">
                 <Button x:Uid="WriteConfigButton" Click="WriteConfigButton_Click" Style="{StaticResource PrimaryAction}" />
             </StackPanel>
 

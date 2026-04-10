@@ -20,6 +20,9 @@
   <data name="ImeCategoryJapaneseItem.Content" xml:space="preserve"><value>日文</value></data>
   <data name="DeleteCustomImeButtonTemplate.Content" xml:space="preserve"><value>删除</value></data>
   <data name="WriteConfigButton.Content" xml:space="preserve"><value>写入配置</value></data>
+  <data name="ImeTableHeaderName.Text" xml:space="preserve"><value>输入法名称</value></data>
+  <data name="ImeTableHeaderCategory.Text" xml:space="preserve"><value>分类</value></data>
+  <data name="ImeTableHeaderAction.Text" xml:space="preserve"><value>操作</value></data>
 
   <data name="Category/ChineseSimplified" xml:space="preserve"><value>中文简体</value></data>
   <data name="Category/ChineseTraditional" xml:space="preserve"><value>中文繁体</value></data>
@@ -64,4 +67,5 @@
 
   <data name="Ime/Weixin" xml:space="preserve"><value>微信输入法</value></data>
 </root>
+
 
