@@ -14,7 +14,7 @@
 
 ## 三、软件截图
 
-![mainpage](doc/mainpage.png)
+![mainpage](images/mainpage.png)
 
 ## 四、开发者信息
 
