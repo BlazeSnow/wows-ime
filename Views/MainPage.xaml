@@ -9,16 +9,21 @@
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d">
     <Page.Content>
-        <Grid Padding="24" RowSpacing="12" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <ScrollViewer
+            VerticalScrollMode="Enabled"
+            VerticalScrollBarVisibility="Auto"
+            HorizontalScrollMode="Disabled"
+            HorizontalScrollBarVisibility="Disabled">
+        <Grid Padding="20" RowSpacing="8" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <StackPanel Spacing="6">
+            <StackPanel Spacing="4">
                 <TextBlock x:Uid="MainTitleText" FontSize="24" FontWeight="SemiBold" />
                 <TextBlock x:Uid="MainSubtitleText" TextWrapping="WrapWholeWords" />
             </StackPanel>
@@ -29,7 +34,7 @@
                 </toolkit:SettingsExpander.Header>
                 <toolkit:SettingsExpander.Items>
                     <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
-                        <Grid Margin="0,8,0,0" RowSpacing="8">
+                        <Grid Margin="0,4,0,0" RowSpacing="6">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
@@ -100,7 +105,7 @@
 
                 <toolkit:SettingsExpander.Items>
                     <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
-                        <Grid Margin="0,8,0,0" RowSpacing="6">
+                        <Grid Margin="0,4,0,0" RowSpacing="4">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
@@ -121,12 +126,12 @@
                                 x:Name="ImeListView"
                                 VerticalAlignment="Stretch"
                                 HorizontalAlignment="Stretch"
-                                ScrollViewer.VerticalScrollMode="Enabled"
-                                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                ScrollViewer.VerticalScrollMode="Disabled"
+                                ScrollViewer.VerticalScrollBarVisibility="Hidden"
                                 ItemsSource="{x:Bind InputMethods, Mode=OneWay}">
                                 <ListView.ItemTemplate>
                                     <DataTemplate x:DataType="local:InputMethodItem">
-                                        <Grid Padding="0,4" ColumnSpacing="12">
+                                        <Grid Padding="0,2" ColumnSpacing="10">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="56" />
                                                 <ColumnDefinition Width="*" />
@@ -169,5 +174,6 @@
 
             <InfoBar Grid.Row="4" x:Name="StatusInfoBar" IsOpen="False" IsClosable="False" Margin="0,4,0,0" />
         </Grid>
+        </ScrollViewer>
     </Page.Content>
 </Page>
