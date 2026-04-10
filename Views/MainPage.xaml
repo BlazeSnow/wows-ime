@@ -52,7 +52,6 @@
                 <toolkit:SettingsExpander.Items>
                     <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
                         <ListView
-                            Margin="0,4,0,0"
                             x:Name="GamePathListView"
                             ItemsSource="{x:Bind GamePathOptions, Mode=OneWay}"
                             SelectionMode="None"
@@ -86,9 +85,9 @@
                             </ListView.ItemContainerStyle>
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="local:GamePathOption">
-                                    <Grid Padding="8,6" ColumnSpacing="8">
+                                    <Grid Padding="8">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="50" />
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
@@ -97,7 +96,7 @@
                                             IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
                                             Checked="GamePathRadioButton_Checked"
                                             Tag="{x:Bind}" />
-                                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Top">
                                             <TextBlock Text="{x:Bind DisplayName}" />
                                             <TextBlock Text="{x:Bind Path}" Opacity="0.72" TextWrapping="WrapWholeWords" />
                                         </StackPanel>
@@ -131,13 +130,13 @@
 
                 <toolkit:SettingsExpander.Items>
                     <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
-                        <Grid Margin="0,4,0,0" RowSpacing="4">
+                        <Grid RowSpacing="8">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="56" />
+                                <ColumnDefinition Width="50" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="180" />
                                 <ColumnDefinition Width="80" />
@@ -157,9 +156,9 @@
                                 ItemsSource="{x:Bind InputMethods, Mode=OneWay}">
                                 <ListView.ItemTemplate>
                                     <DataTemplate x:DataType="local:InputMethodItem">
-                                        <Grid Padding="0,2" ColumnSpacing="10">
+                                        <Grid ColumnSpacing="10">
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="56" />
+                                                <ColumnDefinition Width="30" />
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="180" />
                                                 <ColumnDefinition Width="80" />
@@ -194,11 +193,11 @@
                 </toolkit:SettingsExpander.Items>
             </toolkit:SettingsExpander>
 
-            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="8">
-                <Button x:Uid="WriteConfigButton" Click="WriteConfigButton_Click" Style="{StaticResource PrimaryAction}" />
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,20,0,20">
+                <Button x:Uid="WriteConfigButton" Click="WriteConfigButton_Click" Background="Blue" Foreground="White" MinWidth="150" />
             </StackPanel>
 
-            <InfoBar Grid.Row="4" x:Name="StatusInfoBar" IsOpen="False" IsClosable="False" Margin="0,4,0,0" />
+            <InfoBar Grid.Row="4" x:Name="StatusInfoBar" IsOpen="False" IsClosable="False" />
         </Grid>
         </ScrollViewer>
     </Page.Content>
