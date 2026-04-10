@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <Page
     x:Class="wows_ime.Views.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -6,52 +6,116 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:wows_ime.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d">
     <Page.Content>
-        <Grid Padding="24" RowSpacing="12" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <ScrollViewer
+            VerticalScrollMode="Enabled"
+            VerticalScrollBarVisibility="Auto"
+            HorizontalScrollMode="Disabled"
+            HorizontalScrollBarVisibility="Disabled">
+        <Grid Padding="20" RowSpacing="8" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <StackPanel Spacing="6">
+            <StackPanel Spacing="4">
                 <TextBlock x:Uid="MainTitleText" FontSize="24" FontWeight="SemiBold" />
                 <TextBlock x:Uid="MainSubtitleText" TextWrapping="WrapWholeWords" />
             </StackPanel>
 
-            <StackPanel Grid.Row="1" Spacing="6">
-                <TextBlock x:Uid="GameRootLabel" />
-                <Grid ColumnSpacing="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <ComboBox
-                        x:Name="GameRootPathBox"
-                        HorizontalAlignment="Stretch"
-                        IsEditable="True"
-                        SelectionChanged="GameRootPathBox_SelectionChanged"
-                        LostFocus="GameRootPathBox_LostFocus"
-                        VerticalAlignment="Center">
-                        <x:String>C:\Program Files (x86)\Steam\steamapps\common\World of Warships</x:String>
-                        <x:String>C:\Games\Korabli</x:String>
-                        <x:String>C:\Games\World_of_Warships_CN360</x:String>
-                    </ComboBox>
-                    <Button x:Uid="OpenFolderButton" Grid.Column="1" Click="OpenFolderButton_Click" VerticalAlignment="Center" />
-                    <Button x:Uid="PickFolderButton" Grid.Column="2" Click="PickFolderButton_Click" VerticalAlignment="Center" />
-                </Grid>
-            </StackPanel>
+            <toolkit:SettingsExpander Grid.Row="1" IsExpanded="True">
+                <toolkit:SettingsExpander.Header>
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Uid="GameRootLabel" VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" />
+                        <Button x:Uid="AddCustomGamePathButton" Grid.Column="1" Click="AddCustomGamePathButton_Click" VerticalAlignment="Center" />
+                        <Button x:Uid="OpenFolderButton" Grid.Column="2" Click="OpenFolderButton_Click" VerticalAlignment="Center" />
+                        <TextBlock
+                            Grid.Column="3"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Right"
+                            Text="{x:Bind CurrentSelectedGamePathText, Mode=OneWay}"
+                            TextTrimming="CharacterEllipsis"
+                            Opacity="0.72" />
+                    </Grid>
+                </toolkit:SettingsExpander.Header>
+                <toolkit:SettingsExpander.Items>
+                    <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
+                        <ListView
+                            x:Name="GamePathListView"
+                            ItemsSource="{x:Bind GamePathOptions, Mode=OneWay}"
+                            SelectionMode="None"
+                            IsItemClickEnabled="False"
+                            ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListViewItem">
+                                                <ListViewItemPresenter
+                                                    Background="{TemplateBinding Background}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                    Content="{TemplateBinding Content}"
+                                                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                    ContentTransitions="{TemplateBinding ContentTransitions}"
+                                                    CornerRadius="6"
+                                                    HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                    Padding="{TemplateBinding Padding}"
+                                                    PointerOverBackground="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                                    SelectedBackground="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                                    SelectedPointerOverBackground="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                                    VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="local:GamePathOption">
+                                    <Grid Padding="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="50" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <RadioButton
+                                            GroupName="GamePathGroup"
+                                            IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                            Checked="GamePathRadioButton_Checked"
+                                            Tag="{x:Bind}" />
+                                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Top">
+                                            <TextBlock Text="{x:Bind DisplayName}" />
+                                            <TextBlock Text="{x:Bind Path}" Opacity="0.72" TextWrapping="WrapWholeWords" />
+                                        </StackPanel>
+                                        <Button
+                                            x:Uid="DeleteCustomGamePathButtonTemplate"
+                                            Grid.Column="2"
+                                            Click="DeleteCustomGamePathButton_Click"
+                                            Tag="{x:Bind}"
+                                            Visibility="{x:Bind DeleteButtonVisibility, Mode=OneWay}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </toolkit:SettingsCard>
+                </toolkit:SettingsExpander.Items>
+            </toolkit:SettingsExpander>
 
-            <Border Grid.Row="2" Padding="12" BorderBrush="{ThemeResource SystemControlForegroundBaseMediumBrush}" BorderThickness="1" CornerRadius="8">
-                <Grid RowSpacing="8">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
+            <toolkit:SettingsExpander Grid.Row="2" IsExpanded="True" VerticalAlignment="Stretch">
+                <toolkit:SettingsExpander.Header>
                     <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -62,49 +126,79 @@
                         <Button x:Uid="AddCustomImeButton" Grid.Column="1" Click="AddCustomImeButton_Click" />
                         <Button x:Uid="RefreshImeButton" Grid.Column="2" Click="RefreshImeButton_Click" />
                     </Grid>
-                    <ListView Grid.Row="1" x:Name="ImeListView" VerticalAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemsSource="{x:Bind InputMethods, Mode=OneWay}">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="local:InputMethodItem">
-                                <Grid Padding="0,4" ColumnSpacing="12">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="56" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="180" />
-                                        <ColumnDefinition Width="80" />
-                                    </Grid.ColumnDefinitions>
-                                    <CheckBox
-                                        MinWidth="0"
-                                        MinHeight="0"
-                                        Padding="0"
-                                        Margin="0"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
-                                    <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind DisplayName}" />
-                                    <ComboBox Grid.Column="2" SelectedIndex="{x:Bind CategoryIndex, Mode=TwoWay}">
-                                        <ComboBoxItem x:Uid="ImeCategorySimplifiedItem" />
-                                        <ComboBoxItem x:Uid="ImeCategoryTraditionalItem" />
-                                        <ComboBoxItem x:Uid="ImeCategoryJapaneseItem" />
-                                    </ComboBox>
-                                    <Button
-                                        x:Uid="DeleteCustomImeButtonTemplate"
-                                        Grid.Column="3"
-                                        Click="DeleteCustomImeButton_Click"
-                                        HorizontalAlignment="Stretch"
-                                        Tag="{x:Bind}"
-                                        Visibility="{x:Bind DeleteButtonVisibility, Mode=OneWay}" />
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </Grid>
-            </Border>
+                </toolkit:SettingsExpander.Header>
 
-            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-                <Button x:Uid="WriteConfigButton" Click="WriteConfigButton_Click" Style="{StaticResource PrimaryAction}" />
+                <toolkit:SettingsExpander.Items>
+                    <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
+                        <Grid RowSpacing="8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="180" />
+                                <ColumnDefinition Width="80" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Uid="ImeTableHeaderName" Grid.Column="1" FontWeight="SemiBold" />
+                            <TextBlock x:Uid="ImeTableHeaderCategory" Grid.Column="2" FontWeight="SemiBold" />
+                            <TextBlock x:Uid="ImeTableHeaderAction" Grid.Column="3" FontWeight="SemiBold" />
+
+                            <ListView
+                                Grid.Row="1"
+                                Grid.ColumnSpan="4"
+                                x:Name="ImeListView"
+                                VerticalAlignment="Stretch"
+                                HorizontalAlignment="Stretch"
+                                ScrollViewer.VerticalScrollMode="Disabled"
+                                ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                                ItemsSource="{x:Bind InputMethods, Mode=OneWay}">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="local:InputMethodItem">
+                                        <Grid ColumnSpacing="10" Margin="0,10,0,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="30" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="180" />
+                                                <ColumnDefinition Width="80" />
+                                            </Grid.ColumnDefinitions>
+                                            <CheckBox
+                                                MinWidth="0"
+                                                MinHeight="0"
+                                                Padding="0"
+                                                Margin="0"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
+                                            <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind DisplayName}" />
+                                            <ComboBox Grid.Column="2" SelectedIndex="{x:Bind CategoryIndex, Mode=TwoWay}">
+                                                <ComboBoxItem x:Uid="ImeCategorySimplifiedItem" />
+                                                <ComboBoxItem x:Uid="ImeCategoryTraditionalItem" />
+                                                <ComboBoxItem x:Uid="ImeCategoryJapaneseItem" />
+                                            </ComboBox>
+                                            <Button
+                                                x:Uid="DeleteCustomImeButtonTemplate"
+                                                Grid.Column="3"
+                                                Click="DeleteCustomImeButton_Click"
+                                                HorizontalAlignment="Stretch"
+                                                Tag="{x:Bind}"
+                                                Visibility="{x:Bind DeleteButtonVisibility, Mode=OneWay}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </Grid>
+                    </toolkit:SettingsCard>
+                </toolkit:SettingsExpander.Items>
+            </toolkit:SettingsExpander>
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,20,0,20">
+                <Button x:Uid="WriteConfigButton" Click="WriteConfigButton_Click" Background="Blue" Foreground="White" MinWidth="150" />
             </StackPanel>
 
-            <InfoBar Grid.Row="4" x:Name="StatusInfoBar" IsOpen="False" IsClosable="False" Margin="0,4,0,0" />
+            <InfoBar Grid.Row="4" x:Name="StatusInfoBar" IsOpen="False" IsClosable="False" />
         </Grid>
+        </ScrollViewer>
     </Page.Content>
 </Page>

@@ -30,18 +30,20 @@ public sealed partial class MainPage : Page
     private static readonly ResourceLoader ResourceLoader = new();
 
     public ObservableCollection<InputMethodItem> InputMethods { get; } = new();
+    public ObservableCollection<GamePathOption> GamePathOptions { get; } = new();
+    public string CurrentSelectedGamePathText { get; private set; } = string.Empty;
 
     public MainPage()
     {
         suppressSettingsSave = true;
         InitializeComponent();
-        GameRootPathBox.Text = LoadSavedGameDir() ?? SteamDefaultPath;
+        LoadGamePathOptions();
         LoadInputMethods();
         LoadSavedCustomIme();
         suppressSettingsSave = false;
     }
 
-    private async void PickFolderButton_Click(object sender, RoutedEventArgs e)
+    private async void AddCustomGamePathButton_Click(object sender, RoutedEventArgs e)
     {
         var picker = new FolderPicker();
         picker.FileTypeFilter.Add("*");
@@ -58,7 +60,25 @@ public sealed partial class MainPage : Page
         var folder = await picker.PickSingleFolderAsync();
         if (folder is not null)
         {
-            GameRootPathBox.Text = folder.Path;
+            var path = folder.Path.Trim();
+            var existing = GamePathOptions.FirstOrDefault(item => string.Equals(item.Path, path, StringComparison.OrdinalIgnoreCase));
+            if (existing is not null)
+            {
+                SelectGamePath(existing);
+                ShowStatus(SR("Status/CustomGamePathExists"), InfoBarSeverity.Informational);
+                return;
+            }
+
+            var displayName = Path.GetFileName(path);
+            if (string.IsNullOrWhiteSpace(displayName))
+            {
+                displayName = path;
+            }
+
+            var option = new GamePathOption(displayName, path, isCustom: true) { IsSelected = true };
+            GamePathOptions.Add(option);
+            SelectGamePath(option);
+            ShowStatus(SR("Status/CustomGamePathAdded"), InfoBarSeverity.Success);
             SaveSettings();
         }
     }
@@ -69,19 +89,38 @@ public sealed partial class MainPage : Page
         LoadSavedCustomIme();
     }
 
-    private void GameRootPathBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void GamePathRadioButton_Checked(object sender, RoutedEventArgs e)
     {
+        if (sender is not RadioButton { Tag: GamePathOption option })
+        {
+            return;
+        }
+
+        SelectGamePath(option);
         SaveSettings();
     }
 
-    private void GameRootPathBox_LostFocus(object sender, RoutedEventArgs e)
+    private void DeleteCustomGamePathButton_Click(object sender, RoutedEventArgs e)
     {
+        if (sender is not Button { Tag: GamePathOption option } || !option.IsCustom)
+        {
+            return;
+        }
+
+        var wasSelected = option.IsSelected;
+        _ = GamePathOptions.Remove(option);
+        if (wasSelected)
+        {
+            SelectGamePath(GamePathOptions.FirstOrDefault());
+        }
+
+        ShowStatus(SR("Status/CustomGamePathDeleted"), InfoBarSeverity.Success);
         SaveSettings();
     }
 
     private void OpenFolderButton_Click(object sender, RoutedEventArgs e)
     {
-        var gameRoot = GameRootPathBox.Text?.Trim() ?? string.Empty;
+        var gameRoot = GetSelectedGameRootPath();
         if (string.IsNullOrWhiteSpace(gameRoot) || !Directory.Exists(gameRoot))
         {
             ShowStatus(SR("Status/DirectoryNotExistsCannotOpen"), InfoBarSeverity.Warning);
@@ -192,7 +231,7 @@ public sealed partial class MainPage : Page
             return;
         }
 
-        var gameRoot = GameRootPathBox.Text?.Trim() ?? string.Empty;
+        var gameRoot = GetSelectedGameRootPath();
         if (string.IsNullOrWhiteSpace(gameRoot) || !Directory.Exists(gameRoot))
         {
             ShowStatus(SR("Status/GameRootInvalid"), InfoBarSeverity.Error);
@@ -652,10 +691,64 @@ public sealed partial class MainPage : Page
         }
     }
 
-    private string? LoadSavedGameDir()
+    private void LoadGamePathOptions()
     {
         var settings = LoadSettings();
-        return string.IsNullOrWhiteSpace(settings?.GameDir) ? null : settings.GameDir;
+
+        GamePathOptions.Clear();
+        GamePathOptions.Add(new GamePathOption(SR("GamePathOption/Steam"), SteamDefaultPath));
+        GamePathOptions.Add(new GamePathOption(SR("GamePathOption/Lesta"), LestaDefaultPath));
+        GamePathOptions.Add(new GamePathOption(SR("GamePathOption/Cn360"), Cn360DefaultPath));
+
+        if (settings?.GamePaths is not null)
+        {
+            foreach (var customPath in settings.GamePaths)
+            {
+                var path = customPath.Path?.Trim();
+                if (string.IsNullOrWhiteSpace(path))
+                {
+                    continue;
+                }
+
+                if (GamePathOptions.Any(item => string.Equals(item.Path, path, StringComparison.OrdinalIgnoreCase)))
+                {
+                    continue;
+                }
+
+                var displayName = string.IsNullOrWhiteSpace(customPath.Name) ? Path.GetFileName(path) : customPath.Name;
+                if (string.IsNullOrWhiteSpace(displayName))
+                {
+                    displayName = path;
+                }
+
+                GamePathOptions.Add(new GamePathOption(displayName, path, isCustom: true));
+            }
+        }
+
+        var selectedPath = settings?.SelectedGamePath;
+        if (string.IsNullOrWhiteSpace(selectedPath))
+        {
+            selectedPath = settings?.GameDir;
+        }
+
+        var selected = GamePathOptions.FirstOrDefault(item => string.Equals(item.Path, selectedPath, StringComparison.OrdinalIgnoreCase));
+        SelectGamePath(selected ?? GamePathOptions.FirstOrDefault());
+    }
+
+    private void SelectGamePath(GamePathOption? option)
+    {
+        foreach (var item in GamePathOptions)
+        {
+            item.IsSelected = ReferenceEquals(item, option);
+        }
+
+        CurrentSelectedGamePathText = option?.Path ?? string.Empty;
+        Bindings.Update();
+    }
+
+    private string GetSelectedGameRootPath()
+    {
+        return GamePathOptions.FirstOrDefault(item => item.IsSelected)?.Path?.Trim() ?? string.Empty;
     }
 
     private AppSettings? LoadSettings()
@@ -688,7 +781,16 @@ public sealed partial class MainPage : Page
         {
             var settings = new AppSettings
             {
-                GameDir = GameRootPathBox.Text?.Trim(),
+                SelectedGamePath = GetSelectedGameRootPath(),
+                GameDir = GetSelectedGameRootPath(),
+                GamePaths = GamePathOptions
+                    .Where(item => item.IsCustom)
+                    .Select(item => new SavedGamePath
+                    {
+                        Name = item.DisplayName,
+                        Path = item.Path
+                    })
+                    .ToList(),
                 Ime = InputMethods
                     .Where(item => item.IsCustom)
                     .Select(item => new SavedIme
@@ -918,12 +1020,48 @@ public sealed class InputMethodItem : Microsoft.UI.Xaml.DependencyObject
     public ImeCategory Category { get; private set; }
 }
 
+public sealed class GamePathOption : Microsoft.UI.Xaml.DependencyObject
+{
+    public GamePathOption(string displayName, string path, bool isCustom = false)
+    {
+        DisplayName = displayName;
+        Path = path;
+        IsCustom = isCustom;
+    }
+
+    public string DisplayName { get; }
+    public string Path { get; }
+    public bool IsCustom { get; }
+    public Visibility DeleteButtonVisibility => IsCustom ? Visibility.Visible : Visibility.Collapsed;
+
+    public bool IsSelected
+    {
+        get => (bool)GetValue(IsSelectedProperty);
+        set => SetValue(IsSelectedProperty, value);
+    }
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty IsSelectedProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            nameof(IsSelected),
+            typeof(bool),
+            typeof(GamePathOption),
+            new PropertyMetadata(false));
+}
+
 public sealed record ScannedImeCandidate(string DisplayName, ImeCategory Category, int Confidence);
 
 public sealed class AppSettings
 {
+    public string? SelectedGamePath { get; set; }
     public string? GameDir { get; set; }
+    public List<SavedGamePath> GamePaths { get; set; } = new();
     public List<SavedIme> Ime { get; set; } = new();
+}
+
+public sealed class SavedGamePath
+{
+    public string? Name { get; set; }
+    public string? Path { get; set; }
 }
 
 public sealed class SavedIme
