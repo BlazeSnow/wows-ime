@@ -13,8 +13,8 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
@@ -23,33 +23,37 @@
                 <TextBlock x:Uid="MainSubtitleText" TextWrapping="WrapWholeWords" />
             </StackPanel>
 
-            <toolkit:SettingsCard Grid.Row="1">
-                <toolkit:SettingsCard.Header>
-                    <TextBlock x:Uid="GameRootLabel" FontWeight="SemiBold" />
-                </toolkit:SettingsCard.Header>
-                <Grid ColumnSpacing="8" Margin="0,8,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <ComboBox
-                        x:Name="GameRootPathBox"
-                        HorizontalAlignment="Stretch"
-                        IsEditable="True"
-                        SelectionChanged="GameRootPathBox_SelectionChanged"
-                        LostFocus="GameRootPathBox_LostFocus"
-                        VerticalAlignment="Center">
-                        <x:String>C:\Program Files (x86)\Steam\steamapps\common\World of Warships</x:String>
-                        <x:String>C:\Games\Korabli</x:String>
-                        <x:String>C:\Games\World_of_Warships_CN360</x:String>
-                    </ComboBox>
-                    <Button x:Uid="OpenFolderButton" Grid.Column="1" Click="OpenFolderButton_Click" VerticalAlignment="Center" />
-                    <Button x:Uid="PickFolderButton" Grid.Column="2" Click="PickFolderButton_Click" VerticalAlignment="Center" />
-                </Grid>
-            </toolkit:SettingsCard>
+            <toolkit:SettingsExpander Grid.Row="1" IsExpanded="True">
+                <toolkit:SettingsExpander.Header>
+                    <TextBlock x:Uid="GameRootLabel" VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" />
+                </toolkit:SettingsExpander.Header>
+                <toolkit:SettingsExpander.Items>
+                    <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
+                        <Grid ColumnSpacing="8" Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ComboBox
+                                x:Name="GameRootPathBox"
+                                HorizontalAlignment="Stretch"
+                                IsEditable="True"
+                                SelectionChanged="GameRootPathBox_SelectionChanged"
+                                LostFocus="GameRootPathBox_LostFocus"
+                                VerticalAlignment="Center">
+                                <x:String>C:\Program Files (x86)\Steam\steamapps\common\World of Warships</x:String>
+                                <x:String>C:\Games\Korabli</x:String>
+                                <x:String>C:\Games\World_of_Warships_CN360</x:String>
+                            </ComboBox>
+                            <Button x:Uid="OpenFolderButton" Grid.Column="1" Click="OpenFolderButton_Click" VerticalAlignment="Center" />
+                            <Button x:Uid="PickFolderButton" Grid.Column="2" Click="PickFolderButton_Click" VerticalAlignment="Center" />
+                        </Grid>
+                    </toolkit:SettingsCard>
+                </toolkit:SettingsExpander.Items>
+            </toolkit:SettingsExpander>
 
-            <toolkit:SettingsExpander Grid.Row="2" IsExpanded="True">
+            <toolkit:SettingsExpander Grid.Row="2" IsExpanded="True" VerticalAlignment="Stretch">
                 <toolkit:SettingsExpander.Header>
                     <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
@@ -86,6 +90,7 @@
                                 x:Name="ImeListView"
                                 VerticalAlignment="Stretch"
                                 HorizontalAlignment="Stretch"
+                                ScrollViewer.VerticalScrollMode="Enabled"
                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
                                 ItemsSource="{x:Bind InputMethods, Mode=OneWay}">
                                 <ListView.ItemTemplate>
@@ -127,7 +132,7 @@
                 </toolkit:SettingsExpander.Items>
             </toolkit:SettingsExpander>
 
-            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Spacing="8">
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="8">
                 <Button x:Uid="WriteConfigButton" Click="WriteConfigButton_Click" Style="{StaticResource PrimaryAction}" />
             </StackPanel>
 
