@@ -29,25 +29,56 @@
                 </toolkit:SettingsExpander.Header>
                 <toolkit:SettingsExpander.Items>
                     <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
-                        <Grid ColumnSpacing="8" Margin="0,8,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <ComboBox
-                                x:Name="GameRootPathBox"
-                                HorizontalAlignment="Stretch"
-                                IsEditable="True"
-                                SelectionChanged="GameRootPathBox_SelectionChanged"
-                                LostFocus="GameRootPathBox_LostFocus"
-                                VerticalAlignment="Center">
-                                <x:String>C:\Program Files (x86)\Steam\steamapps\common\World of Warships</x:String>
-                                <x:String>C:\Games\Korabli</x:String>
-                                <x:String>C:\Games\World_of_Warships_CN360</x:String>
-                            </ComboBox>
-                            <Button x:Uid="OpenFolderButton" Grid.Column="1" Click="OpenFolderButton_Click" VerticalAlignment="Center" />
-                            <Button x:Uid="PickFolderButton" Grid.Column="2" Click="PickFolderButton_Click" VerticalAlignment="Center" />
+                        <Grid Margin="0,8,0,0" RowSpacing="8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Uid="GamePathSectionHint" VerticalAlignment="Center" />
+                                <Button x:Uid="AddCustomGamePathButton" Grid.Column="1" Click="AddCustomGamePathButton_Click" VerticalAlignment="Center" />
+                                <Button x:Uid="OpenFolderButton" Grid.Column="2" Click="OpenFolderButton_Click" VerticalAlignment="Center" />
+                            </Grid>
+
+                            <ListView
+                                Grid.Row="1"
+                                x:Name="GamePathListView"
+                                ItemsSource="{x:Bind GamePathOptions, Mode=OneWay}"
+                                SelectionMode="None"
+                                IsItemClickEnabled="False"
+                                ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="local:GamePathOption">
+                                        <Grid Padding="0,4" ColumnSpacing="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <RadioButton
+                                                GroupName="GamePathGroup"
+                                                IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                                Checked="GamePathRadioButton_Checked"
+                                                Tag="{x:Bind}" />
+                                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                                <TextBlock Text="{x:Bind DisplayName}" />
+                                                <TextBlock Text="{x:Bind Path}" Opacity="0.72" TextWrapping="WrapWholeWords" />
+                                            </StackPanel>
+                                            <Button
+                                                x:Uid="DeleteCustomGamePathButtonTemplate"
+                                                Grid.Column="2"
+                                                Click="DeleteCustomGamePathButton_Click"
+                                                Tag="{x:Bind}"
+                                                Visibility="{x:Bind DeleteButtonVisibility, Mode=OneWay}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
                         </Grid>
                     </toolkit:SettingsCard>
                 </toolkit:SettingsExpander.Items>

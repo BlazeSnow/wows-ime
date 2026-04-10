@@ -10,6 +10,8 @@
   <data name="MainTitleText.Text" xml:space="preserve"><value>战舰世界输入法配置工具</value></data>
   <data name="MainSubtitleText.Text" xml:space="preserve"><value>扫描本机输入法，勾选并指定类型后写入游戏目录的 ime_config.xml。</value></data>
   <data name="GameRootLabel.Text" xml:space="preserve"><value>游戏根目录</value></data>
+  <data name="GamePathSectionHint.Text" xml:space="preserve"><value>选择预设路径或添加自定义路径</value></data>
+  <data name="AddCustomGamePathButton.Content" xml:space="preserve"><value>添加自定义路径</value></data>
   <data name="OpenFolderButton.Content" xml:space="preserve"><value>打开目录</value></data>
   <data name="PickFolderButton.Content" xml:space="preserve"><value>选择目录</value></data>
   <data name="ImeSectionTitle.Text" xml:space="preserve"><value>检测到的输入法</value></data>
@@ -19,6 +21,7 @@
   <data name="ImeCategoryTraditionalItem.Content" xml:space="preserve"><value>中文繁体</value></data>
   <data name="ImeCategoryJapaneseItem.Content" xml:space="preserve"><value>日文</value></data>
   <data name="DeleteCustomImeButtonTemplate.Content" xml:space="preserve"><value>删除</value></data>
+  <data name="DeleteCustomGamePathButtonTemplate.Content" xml:space="preserve"><value>删除</value></data>
   <data name="WriteConfigButton.Content" xml:space="preserve"><value>写入配置</value></data>
   <data name="ImeTableHeaderName.Text" xml:space="preserve"><value>输入法名称</value></data>
   <data name="ImeTableHeaderCategory.Text" xml:space="preserve"><value>分类</value></data>
@@ -27,6 +30,9 @@
   <data name="Category/ChineseSimplified" xml:space="preserve"><value>中文简体</value></data>
   <data name="Category/ChineseTraditional" xml:space="preserve"><value>中文繁体</value></data>
   <data name="Category/Japanese" xml:space="preserve"><value>日文</value></data>
+  <data name="GamePathOption/Steam" xml:space="preserve"><value>Steam（国际服）</value></data>
+  <data name="GamePathOption/Lesta" xml:space="preserve"><value>Lesta（俄服）</value></data>
+  <data name="GamePathOption/Cn360" xml:space="preserve"><value>国服（360）</value></data>
 
   <data name="Dialog/Common/Cancel" xml:space="preserve"><value>取消</value></data>
   <data name="Dialog/AddCustomIme/Title" xml:space="preserve"><value>添加自定义输入法</value></data>
@@ -48,6 +54,9 @@
   <data name="Status/ImeNameExists" xml:space="preserve"><value>该输入法名称已存在。</value></data>
   <data name="Status/CustomImeAdded" xml:space="preserve"><value>已添加自定义输入法。</value></data>
   <data name="Status/CustomImeDeleted" xml:space="preserve"><value>已删除自定义输入法。</value></data>
+  <data name="Status/CustomGamePathAdded" xml:space="preserve"><value>已添加自定义路径。</value></data>
+  <data name="Status/CustomGamePathDeleted" xml:space="preserve"><value>已删除自定义路径。</value></data>
+  <data name="Status/CustomGamePathExists" xml:space="preserve"><value>该路径已存在，已切换为该路径。</value></data>
   <data name="Status/SelectAtLeastOneIme" xml:space="preserve"><value>请至少勾选一个输入法。</value></data>
   <data name="Status/GameRootInvalid" xml:space="preserve"><value>游戏根目录不存在，请先选择有效目录。</value></data>
   <data name="Status/GameExeNotFound" xml:space="preserve"><value>所选目录未找到 WorldOfWarships.exe 或 Korabli.exe。</value></data>
@@ -67,5 +76,7 @@
 
   <data name="Ime/Weixin" xml:space="preserve"><value>微信输入法</value></data>
 </root>
+
+
 
 
