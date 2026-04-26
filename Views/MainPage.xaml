@@ -196,6 +196,9 @@
             <toolkit:SettingsCard
                 Grid.Row="3"
                 x:Uid="WriteConfigCard">
+                <toolkit:SettingsCard.Header>
+                    <TextBlock x:Uid="WriteConfigCardHeader" FontSize="16" FontWeight="SemiBold" />
+                </toolkit:SettingsCard.Header>
                 <Button x:Uid="WriteConfigButton" Click="WriteConfigButton_Click" Background="#00d7eb" Foreground="White" />
             </toolkit:SettingsCard>
 

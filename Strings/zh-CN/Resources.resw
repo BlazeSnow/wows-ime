@@ -168,7 +168,7 @@
   <data name="WriteConfigButton.Content" xml:space="preserve">
     <value>写入配置</value>
   </data>
-  <data name="WriteConfigCard.Header" xml:space="preserve">
+  <data name="WriteConfigCardHeader.Text" xml:space="preserve">
     <value>检查完毕后开始写入配置</value>
   </data>
   <data name="ImeTableHeaderName.Text" xml:space="preserve">
