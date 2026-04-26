@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.ComponentModel;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -14,7 +16,7 @@ using WinRT.Interop;
 
 namespace wows_ime.Views;
 
-public sealed partial class MainPage : Page
+public sealed partial class MainPage : Page, INotifyPropertyChanged
 {
     private const string SteamDefaultPath = @"C:\Program Files (x86)\Steam\steamapps\common\World of Warships";
     private const string LestaDefaultPath = @"C:\Games\Korabli";
@@ -27,11 +29,27 @@ public sealed partial class MainPage : Page
     private const string TagJapanese = "GFxIME_Jp";
     private string? lastScanWarning;
     private bool suppressSettingsSave;
+    private string currentSelectedGamePathText = string.Empty;
     private static readonly ResourceLoader ResourceLoader = new();
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     public ObservableCollection<InputMethodItem> InputMethods { get; } = new();
     public ObservableCollection<GamePathOption> GamePathOptions { get; } = new();
-    public string CurrentSelectedGamePathText { get; private set; } = string.Empty;
+    public string CurrentSelectedGamePathText
+    {
+        get => currentSelectedGamePathText;
+        private set
+        {
+            if (currentSelectedGamePathText == value)
+            {
+                return;
+            }
+
+            currentSelectedGamePathText = value;
+            OnPropertyChanged();
+        }
+    }
 
     public MainPage()
     {
@@ -743,7 +761,11 @@ public sealed partial class MainPage : Page
         }
 
         CurrentSelectedGamePathText = option?.Path ?? string.Empty;
-        Bindings.Update();
+    }
+
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     private string GetSelectedGameRootPath()
