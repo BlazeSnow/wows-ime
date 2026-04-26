@@ -193,7 +193,9 @@
                 </toolkit:SettingsExpander.Items>
             </toolkit:SettingsExpander>
 
-            <toolkit:SettingsCard Grid.Row="3">
+            <toolkit:SettingsCard
+                Grid.Row="3"
+                x:Uid="WriteConfigCard">
                 <Button x:Uid="WriteConfigButton" Click="WriteConfigButton_Click" Background="#00d7eb" Foreground="White" />
             </toolkit:SettingsCard>
 
