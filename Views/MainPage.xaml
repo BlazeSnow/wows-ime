@@ -210,7 +210,7 @@
                 <toolkit:SettingsCard.Header>
                     <TextBlock x:Uid="WriteConfigCardHeader" FontSize="16" FontWeight="SemiBold" />
                 </toolkit:SettingsCard.Header>
-                <Button x:Uid="WriteConfigButton" Click="WriteConfigButton_Click" Background="#00d7eb" Foreground="White" />
+                <Button x:Uid="WriteConfigButton" Click="WriteConfigButton_Click" Style="{StaticResource AccentButtonStyle}" />
             </toolkit:SettingsCard>
 
             <toolkit:SettingsCard
