@@ -229,7 +229,7 @@
                 Grid.Row="5"
                 x:Uid="ProjectRepositoryCard">
                 <toolkit:SettingsCard.HeaderIcon>
-                    <FontIcon Glyph="&#xE8F7;" />
+                    <FontIcon Glyph="&#xE943;" />
                 </toolkit:SettingsCard.HeaderIcon>
                 <toolkit:SettingsCard.Header>
                     <TextBlock x:Uid="ProjectRepositoryCardHeader" FontSize="16" FontWeight="SemiBold" />
