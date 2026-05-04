@@ -14,8 +14,10 @@
             VerticalScrollBarVisibility="Auto"
             HorizontalScrollMode="Disabled"
             HorizontalScrollBarVisibility="Disabled">
-        <Grid Padding="20" RowSpacing="8" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid Padding="20" RowSpacing="8" Background="Transparent">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -29,6 +31,9 @@
             </StackPanel>
 
             <toolkit:SettingsExpander Grid.Row="1" IsExpanded="True">
+                <toolkit:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE8B7;" />
+                </toolkit:SettingsExpander.HeaderIcon>
                 <toolkit:SettingsExpander.Header>
                     <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
@@ -115,6 +120,9 @@
             </toolkit:SettingsExpander>
 
             <toolkit:SettingsExpander Grid.Row="2" IsExpanded="True" VerticalAlignment="Stretch">
+                <toolkit:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE765;" />
+                </toolkit:SettingsExpander.HeaderIcon>
                 <toolkit:SettingsExpander.Header>
                     <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
@@ -196,10 +204,37 @@
             <toolkit:SettingsCard
                 Grid.Row="3"
                 x:Uid="WriteConfigCard">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE74E;" />
+                </toolkit:SettingsCard.HeaderIcon>
                 <toolkit:SettingsCard.Header>
                     <TextBlock x:Uid="WriteConfigCardHeader" FontSize="16" FontWeight="SemiBold" />
                 </toolkit:SettingsCard.Header>
-                <Button x:Uid="WriteConfigButton" Click="WriteConfigButton_Click" Background="#00d7eb" Foreground="White" />
+                <Button x:Uid="WriteConfigButton" Click="WriteConfigButton_Click" Style="{StaticResource AccentButtonStyle}" />
+            </toolkit:SettingsCard>
+
+            <toolkit:SettingsCard
+                Grid.Row="5"
+                x:Uid="ProjectWebsiteCard">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE774;" />
+                </toolkit:SettingsCard.HeaderIcon>
+                <toolkit:SettingsCard.Header>
+                    <TextBlock x:Uid="ProjectWebsiteCardHeader" FontSize="16" FontWeight="SemiBold" />
+                </toolkit:SettingsCard.Header>
+                <Button x:Uid="OpenProjectWebsiteButton" Click="OpenProjectWebsiteButton_Click" />
+            </toolkit:SettingsCard>
+
+            <toolkit:SettingsCard
+                Grid.Row="6"
+                x:Uid="ProjectRepositoryCard">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE943;" />
+                </toolkit:SettingsCard.HeaderIcon>
+                <toolkit:SettingsCard.Header>
+                    <TextBlock x:Uid="ProjectRepositoryCardHeader" FontSize="16" FontWeight="SemiBold" />
+                </toolkit:SettingsCard.Header>
+                <Button x:Uid="OpenProjectRepositoryButton" Click="OpenProjectRepositoryButton_Click" />
             </toolkit:SettingsCard>
 
             <InfoBar Grid.Row="4" x:Name="StatusInfoBar" IsOpen="False" IsClosable="False" />

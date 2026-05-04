@@ -171,6 +171,24 @@
   <data name="WriteConfigCardHeader.Text" xml:space="preserve">
     <value>检查完毕后开始写入配置</value>
   </data>
+  <data name="ProjectWebsiteCard.Description" xml:space="preserve">
+    <value>https://www.blazesnow.com/wows/</value>
+  </data>
+  <data name="ProjectWebsiteCardHeader.Text" xml:space="preserve">
+    <value>项目官网</value>
+  </data>
+  <data name="OpenProjectWebsiteButton.Content" xml:space="preserve">
+    <value>打开官网</value>
+  </data>
+  <data name="ProjectRepositoryCard.Description" xml:space="preserve">
+    <value>https://github.com/BlazeSnow/wows-ime</value>
+  </data>
+  <data name="ProjectRepositoryCardHeader.Text" xml:space="preserve">
+    <value>项目仓库</value>
+  </data>
+  <data name="OpenProjectRepositoryButton.Content" xml:space="preserve">
+    <value>打开仓库</value>
+  </data>
   <data name="ImeTableHeaderName.Text" xml:space="preserve">
     <value>输入法名称</value>
   </data>
@@ -284,6 +302,12 @@
   </data>
   <data name="Status/WriteFailed" xml:space="preserve">
     <value>写入失败：{0}</value>
+  </data>
+  <data name="Status/OpenProjectWebsiteFailed" xml:space="preserve">
+    <value>打开项目官网失败。</value>
+  </data>
+  <data name="Status/OpenProjectRepositoryFailed" xml:space="preserve">
+    <value>打开项目仓库失败。</value>
   </data>
   <data name="Status/ScanCompletedNoImeWithWarning" xml:space="preserve">
     <value>扫描完成，未发现输入法。TSF错误：{0}</value>
