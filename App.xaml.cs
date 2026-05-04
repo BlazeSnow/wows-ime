@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
 using System.Text;
@@ -41,6 +42,7 @@ namespace wows_ime
             window ??= new Window();
             MainWindow = window;
             window.Title = SR("App/Title");
+            window.SystemBackdrop = new MicaBackdrop();
             SetWindowIcon(window);
             ApplySystemTitleBarTheme(window);
             EnsureThemeListener();

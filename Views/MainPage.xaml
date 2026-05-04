@@ -14,7 +14,7 @@
             VerticalScrollBarVisibility="Auto"
             HorizontalScrollMode="Disabled"
             HorizontalScrollBarVisibility="Disabled">
-        <Grid Padding="20" RowSpacing="8" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid Padding="20" RowSpacing="8" Background="Transparent">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
