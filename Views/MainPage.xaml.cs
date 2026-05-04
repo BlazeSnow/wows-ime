@@ -26,6 +26,8 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
     private const string TagSimplified = "GFxIME_Ch_Simp";
     private const string TagTraditional = "GFxIME_Ch_Trad_Array";
     private const string TagJapanese = "GFxIME_Jp";
+    private static readonly Uri ProjectWebsiteUri = new("https://www.blazesnow.com/powerplan/");
+    private static readonly Uri ProjectRepositoryUri = new("https://github.com/BlazeSnow/PowerPlan");
     private string? lastScanWarning;
     private bool suppressSettingsSave;
     private string currentSelectedGamePathText = string.Empty;
@@ -310,6 +312,24 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
         catch (Exception ex)
         {
             ShowStatus(SRF("Status/WriteFailed", ex.Message), InfoBarSeverity.Error);
+        }
+    }
+
+    private async void OpenProjectWebsiteButton_Click(object sender, RoutedEventArgs e)
+    {
+        var launched = await Windows.System.Launcher.LaunchUriAsync(ProjectWebsiteUri);
+        if (!launched)
+        {
+            ShowStatus(SR("Status/OpenProjectWebsiteFailed"), InfoBarSeverity.Error);
+        }
+    }
+
+    private async void OpenProjectRepositoryButton_Click(object sender, RoutedEventArgs e)
+    {
+        var launched = await Windows.System.Launcher.LaunchUriAsync(ProjectRepositoryUri);
+        if (!launched)
+        {
+            ShowStatus(SR("Status/OpenProjectRepositoryFailed"), InfoBarSeverity.Error);
         }
     }
 
