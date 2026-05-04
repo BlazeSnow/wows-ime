@@ -214,7 +214,7 @@
             </toolkit:SettingsCard>
 
             <toolkit:SettingsCard
-                Grid.Row="4"
+                Grid.Row="5"
                 x:Uid="ProjectWebsiteCard">
                 <toolkit:SettingsCard.HeaderIcon>
                     <FontIcon Glyph="&#xE774;" />
@@ -226,7 +226,7 @@
             </toolkit:SettingsCard>
 
             <toolkit:SettingsCard
-                Grid.Row="5"
+                Grid.Row="6"
                 x:Uid="ProjectRepositoryCard">
                 <toolkit:SettingsCard.HeaderIcon>
                     <FontIcon Glyph="&#xE943;" />
@@ -237,7 +237,7 @@
                 <Button x:Uid="OpenProjectRepositoryButton" Click="OpenProjectRepositoryButton_Click" />
             </toolkit:SettingsCard>
 
-            <InfoBar Grid.Row="6" x:Name="StatusInfoBar" IsOpen="False" IsClosable="False" />
+            <InfoBar Grid.Row="4" x:Name="StatusInfoBar" IsOpen="False" IsClosable="False" />
         </Grid>
         </ScrollViewer>
     </Page.Content>
