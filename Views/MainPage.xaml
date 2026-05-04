@@ -29,6 +29,9 @@
             </StackPanel>
 
             <toolkit:SettingsExpander Grid.Row="1" IsExpanded="True">
+                <toolkit:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE8B7;" />
+                </toolkit:SettingsExpander.HeaderIcon>
                 <toolkit:SettingsExpander.Header>
                     <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
@@ -115,6 +118,9 @@
             </toolkit:SettingsExpander>
 
             <toolkit:SettingsExpander Grid.Row="2" IsExpanded="True" VerticalAlignment="Stretch">
+                <toolkit:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE765;" />
+                </toolkit:SettingsExpander.HeaderIcon>
                 <toolkit:SettingsExpander.Header>
                     <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
@@ -196,6 +202,9 @@
             <toolkit:SettingsCard
                 Grid.Row="3"
                 x:Uid="WriteConfigCard">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE74E;" />
+                </toolkit:SettingsCard.HeaderIcon>
                 <toolkit:SettingsCard.Header>
                     <TextBlock x:Uid="WriteConfigCardHeader" FontSize="16" FontWeight="SemiBold" />
                 </toolkit:SettingsCard.Header>
