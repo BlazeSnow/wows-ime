@@ -23,15 +23,9 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <StackPanel Spacing="4">
-                <TextBlock x:Uid="MainTitleText" FontSize="24" FontWeight="SemiBold" />
-                <TextBlock x:Uid="MainSubtitleText" TextWrapping="WrapWholeWords" />
-            </StackPanel>
-
-            <toolkit:SettingsExpander Grid.Row="1" IsExpanded="True">
+            <toolkit:SettingsExpander Grid.Row="0" IsExpanded="True">
                 <toolkit:SettingsExpander.HeaderIcon>
                     <FontIcon Glyph="&#xE8B7;" />
                 </toolkit:SettingsExpander.HeaderIcon>
@@ -120,7 +114,7 @@
                 </toolkit:SettingsExpander.Items>
             </toolkit:SettingsExpander>
 
-            <toolkit:SettingsExpander Grid.Row="2" IsExpanded="True" VerticalAlignment="Stretch">
+            <toolkit:SettingsExpander Grid.Row="1" IsExpanded="True" VerticalAlignment="Stretch">
                 <toolkit:SettingsExpander.HeaderIcon>
                     <FontIcon Glyph="&#xE765;" />
                 </toolkit:SettingsExpander.HeaderIcon>
@@ -203,7 +197,7 @@
             </toolkit:SettingsExpander>
 
             <toolkit:SettingsCard
-                Grid.Row="3"
+                Grid.Row="2"
                 x:Uid="WriteConfigCard">
                 <toolkit:SettingsCard.HeaderIcon>
                     <FontIcon Glyph="&#xE74E;" />
@@ -215,7 +209,7 @@
             </toolkit:SettingsCard>
 
             <toolkit:SettingsCard
-                Grid.Row="5"
+                Grid.Row="4"
                 x:Uid="ProjectWebsiteCard">
                 <toolkit:SettingsCard.HeaderIcon>
                     <FontIcon Glyph="&#xE774;" />
@@ -227,7 +221,7 @@
             </toolkit:SettingsCard>
 
             <toolkit:SettingsCard
-                Grid.Row="6"
+                Grid.Row="5"
                 x:Uid="ProjectRepositoryCard">
                 <toolkit:SettingsCard.HeaderIcon>
                     <FontIcon Glyph="&#xE943;" />
@@ -239,7 +233,7 @@
             </toolkit:SettingsCard>
 
             <toolkit:SettingsCard
-                Grid.Row="7">
+                Grid.Row="6">
                 <toolkit:SettingsCard.HeaderIcon>
                     <FontIcon Glyph="&#xE946;" />
                 </toolkit:SettingsCard.HeaderIcon>
@@ -249,7 +243,7 @@
                 <TextBlock Text="{x:Bind AppVersionText}" />
             </toolkit:SettingsCard>
 
-            <InfoBar Grid.Row="4" x:Name="StatusInfoBar" IsOpen="False" IsClosable="False" />
+            <InfoBar Grid.Row="3" x:Name="StatusInfoBar" IsOpen="False" IsClosable="False" />
         </Grid>
         </ScrollViewer>
     </Page.Content>

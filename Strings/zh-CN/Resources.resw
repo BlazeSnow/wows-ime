@@ -126,12 +126,6 @@
   <data name="AppDescription" xml:space="preserve">
     <value>战舰世界中文输入法配置工具</value>
   </data>
-  <data name="MainTitleText.Text" xml:space="preserve">
-    <value>战舰世界输入法配置工具</value>
-  </data>
-  <data name="MainSubtitleText.Text" xml:space="preserve">
-    <value>扫描本机输入法，勾选并指定类型后写入游戏目录的 ime_config.xml。</value>
-  </data>
   <data name="GameRootLabel.Text" xml:space="preserve">
     <value>游戏根目录</value>
   </data>
