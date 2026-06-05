@@ -27,9 +27,8 @@ internal static class SettingsPersistence
             using var connection = OpenConnection();
             ExecuteNonQuery(connection, """
                 CREATE TABLE IF NOT EXISTS custom_game_paths (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
                     display_name TEXT NOT NULL,
-                    path TEXT NOT NULL UNIQUE,
+                    path TEXT PRIMARY KEY,
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
@@ -37,14 +36,14 @@ internal static class SettingsPersistence
 
             ExecuteNonQuery(connection, """
                 CREATE TABLE IF NOT EXISTS custom_input_methods (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    display_name TEXT NOT NULL UNIQUE,
+                    display_name TEXT PRIMARY KEY,
                     category TEXT NOT NULL,
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
                 """);
 
+            EnsurePrimaryKeySchema(connection);
             MigrateLegacyConfigJsonIfNeeded(connection);
         }
         catch
@@ -89,7 +88,7 @@ internal static class SettingsPersistence
             command.CommandText = """
                 SELECT display_name, path
                 FROM custom_game_paths
-                ORDER BY id;
+                ORDER BY updated_at, path;
                 """;
 
             using var reader = command.ExecuteReader();
@@ -110,23 +109,27 @@ internal static class SettingsPersistence
     {
         try
         {
+            var pathItems = customGamePaths.ToList();
             using var connection = OpenConnection();
             using var transaction = connection.BeginTransaction();
-            ExecuteNonQuery(connection, transaction, "DELETE FROM custom_game_paths;");
 
-            foreach (var path in customGamePaths)
+            foreach (var path in pathItems)
             {
                 using var command = connection.CreateCommand();
                 command.Transaction = transaction;
                 command.CommandText = """
                     INSERT INTO custom_game_paths (display_name, path, updated_at)
-                    VALUES ($displayName, $path, CURRENT_TIMESTAMP);
+                    VALUES ($displayName, $path, CURRENT_TIMESTAMP)
+                    ON CONFLICT(path) DO UPDATE SET
+                        display_name = excluded.display_name,
+                        updated_at = CURRENT_TIMESTAMP;
                     """;
                 command.Parameters.AddWithValue("$displayName", path.DisplayName);
                 command.Parameters.AddWithValue("$path", path.Path);
                 command.ExecuteNonQuery();
             }
 
+            DeleteMissingGamePaths(connection, transaction, pathItems.Select(item => item.Path).ToList());
             transaction.Commit();
         }
         catch
@@ -145,7 +148,7 @@ internal static class SettingsPersistence
             command.CommandText = """
                 SELECT display_name, category
                 FROM custom_input_methods
-                ORDER BY id;
+                ORDER BY updated_at, display_name;
                 """;
 
             using var reader = command.ExecuteReader();
@@ -166,29 +169,71 @@ internal static class SettingsPersistence
     {
         try
         {
+            var inputMethodItems = customInputMethods.ToList();
             using var connection = OpenConnection();
             using var transaction = connection.BeginTransaction();
-            ExecuteNonQuery(connection, transaction, "DELETE FROM custom_input_methods;");
 
-            foreach (var inputMethod in customInputMethods)
+            foreach (var inputMethod in inputMethodItems)
             {
                 using var command = connection.CreateCommand();
                 command.Transaction = transaction;
                 command.CommandText = """
                     INSERT INTO custom_input_methods (display_name, category, updated_at)
-                    VALUES ($displayName, $category, CURRENT_TIMESTAMP);
+                    VALUES ($displayName, $category, CURRENT_TIMESTAMP)
+                    ON CONFLICT(display_name) DO UPDATE SET
+                        category = excluded.category,
+                        updated_at = CURRENT_TIMESTAMP;
                     """;
                 command.Parameters.AddWithValue("$displayName", inputMethod.DisplayName);
                 command.Parameters.AddWithValue("$category", inputMethod.Category);
                 command.ExecuteNonQuery();
             }
 
+            DeleteMissingInputMethods(connection, transaction, inputMethodItems.Select(item => item.DisplayName).ToList());
             transaction.Commit();
         }
         catch
         {
             // Keep failures silent to avoid breaking the main workflow.
         }
+    }
+
+    private static void DeleteMissingGamePaths(SqliteConnection connection, SqliteTransaction transaction, IReadOnlyList<string> pathsToKeep)
+    {
+        DeleteMissingRows(connection, transaction, "custom_game_paths", "path", pathsToKeep);
+    }
+
+    private static void DeleteMissingInputMethods(SqliteConnection connection, SqliteTransaction transaction, IReadOnlyList<string> displayNamesToKeep)
+    {
+        DeleteMissingRows(connection, transaction, "custom_input_methods", "display_name", displayNamesToKeep);
+    }
+
+    private static void DeleteMissingRows(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string tableName,
+        string keyColumnName,
+        IReadOnlyList<string> valuesToKeep)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        if (valuesToKeep.Count == 0)
+        {
+            command.CommandText = $"DELETE FROM {tableName};";
+            command.ExecuteNonQuery();
+            return;
+        }
+
+        var parameterNames = valuesToKeep
+            .Select((_, index) => $"$value{index}")
+            .ToList();
+        command.CommandText = $"DELETE FROM {tableName} WHERE {keyColumnName} NOT IN ({string.Join(", ", parameterNames)});";
+        for (var i = 0; i < valuesToKeep.Count; i++)
+        {
+            command.Parameters.AddWithValue(parameterNames[i], valuesToKeep[i]);
+        }
+
+        command.ExecuteNonQuery();
     }
 
     private static void MigrateLegacyConfigJsonIfNeeded(SqliteConnection connection)
@@ -222,6 +267,114 @@ internal static class SettingsPersistence
         UpsertLegacyGamePaths(connection, root);
         UpsertLegacyInputMethods(connection, root);
         RenameMigratedLegacyConfig(legacyConfigPath);
+    }
+
+    private static void EnsurePrimaryKeySchema(SqliteConnection connection)
+    {
+        if (!ColumnExists(connection, "custom_game_paths", "id") &&
+            IsPrimaryKeyColumn(connection, "custom_game_paths", "path") &&
+            !ColumnExists(connection, "custom_input_methods", "id") &&
+            IsPrimaryKeyColumn(connection, "custom_input_methods", "display_name"))
+        {
+            return;
+        }
+
+        using var transaction = connection.BeginTransaction();
+        MigrateCustomGamePathsTable(connection, transaction);
+        MigrateCustomInputMethodsTable(connection, transaction);
+        transaction.Commit();
+    }
+
+    private static void MigrateCustomGamePathsTable(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        ExecuteNonQuery(connection, transaction, """
+            CREATE TABLE IF NOT EXISTS custom_game_paths_new (
+                display_name TEXT NOT NULL,
+                path TEXT PRIMARY KEY,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            """);
+
+        ExecuteNonQuery(connection, transaction, """
+            INSERT INTO custom_game_paths_new (display_name, path, created_at, updated_at)
+            SELECT source.display_name, source.path, source.created_at, source.updated_at
+            FROM custom_game_paths source
+            WHERE source.path IS NOT NULL
+                AND source.path <> ''
+                AND source.rowid = (
+                    SELECT latest.rowid
+                    FROM custom_game_paths latest
+                    WHERE latest.path = source.path
+                    ORDER BY latest.updated_at DESC, latest.rowid DESC
+                    LIMIT 1
+                );
+            """);
+
+        ExecuteNonQuery(connection, transaction, "DROP TABLE custom_game_paths;");
+        ExecuteNonQuery(connection, transaction, "ALTER TABLE custom_game_paths_new RENAME TO custom_game_paths;");
+    }
+
+    private static void MigrateCustomInputMethodsTable(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        ExecuteNonQuery(connection, transaction, """
+            CREATE TABLE IF NOT EXISTS custom_input_methods_new (
+                display_name TEXT PRIMARY KEY,
+                category TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            """);
+
+        ExecuteNonQuery(connection, transaction, """
+            INSERT INTO custom_input_methods_new (display_name, category, created_at, updated_at)
+            SELECT source.display_name, source.category, source.created_at, source.updated_at
+            FROM custom_input_methods source
+            WHERE source.display_name IS NOT NULL
+                AND source.display_name <> ''
+                AND source.rowid = (
+                    SELECT latest.rowid
+                    FROM custom_input_methods latest
+                    WHERE latest.display_name = source.display_name
+                    ORDER BY latest.updated_at DESC, latest.rowid DESC
+                    LIMIT 1
+                );
+            """);
+
+        ExecuteNonQuery(connection, transaction, "DROP TABLE custom_input_methods;");
+        ExecuteNonQuery(connection, transaction, "ALTER TABLE custom_input_methods_new RENAME TO custom_input_methods;");
+    }
+
+    private static bool ColumnExists(SqliteConnection connection, string tableName, string columnName)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = $"PRAGMA table_info({tableName});";
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            if (string.Equals(reader.GetString(1), columnName, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsPrimaryKeyColumn(SqliteConnection connection, string tableName, string columnName)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = $"PRAGMA table_info({tableName});";
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            if (string.Equals(reader.GetString(1), columnName, StringComparison.OrdinalIgnoreCase))
+            {
+                return reader.GetInt32(5) > 0;
+            }
+        }
+
+        return false;
     }
 
     private static void UpsertLegacyGamePaths(SqliteConnection connection, JsonElement root)
