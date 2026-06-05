@@ -249,6 +249,15 @@
   <data name="Dialog/DeleteCustomIme/PrimaryButton" xml:space="preserve">
     <value>删除</value>
   </data>
+  <data name="Dialog/DeleteCustomGamePath/Title" xml:space="preserve">
+    <value>删除自定义路径</value>
+  </data>
+  <data name="Dialog/DeleteCustomGamePath/Content" xml:space="preserve">
+    <value>确定要删除“{0}”吗？&#x0A;{1}</value>
+  </data>
+  <data name="Dialog/DeleteCustomGamePath/PrimaryButton" xml:space="preserve">
+    <value>删除</value>
+  </data>
   <data name="Dialog/Overwrite/Title" xml:space="preserve">
     <value>发现已有配置文件</value>
   </data>
