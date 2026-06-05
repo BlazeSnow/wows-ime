@@ -1,17 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Xml.Linq;
-using Windows.ApplicationModel.Resources;
-using Windows.Storage;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
+using wows_ime.Services;
 
 namespace wows_ime.Views;
 
@@ -20,23 +13,16 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
     private const string SteamDefaultPath = @"C:\Program Files (x86)\Steam\steamapps\common\World of Warships";
     private const string LestaDefaultPath = @"C:\Games\Korabli";
     private const string Cn360DefaultPath = @"C:\Games\World_of_Warships_CN360";
-    private const string WowsExeName = "WorldOfWarships.exe";
-    private const string KorabliExeName = "Korabli.exe";
-    private const string TargetConfigRelativePath = "res_mods\\ime_config.xml";
-    private const string TagSimplified = "GFxIME_Ch_Simp";
-    private const string TagTraditional = "GFxIME_Ch_Trad_Array";
-    private const string TagJapanese = "GFxIME_Jp";
     private static readonly Uri ProjectWebsiteUri = new("https://www.blazesnow.com/wows/");
     private static readonly Uri ProjectRepositoryUri = new("https://github.com/BlazeSnow/wows-ime");
     private string? lastScanWarning;
     private bool suppressSettingsSave;
     private string currentSelectedGamePathText = string.Empty;
-    private static readonly ResourceLoader ResourceLoader = new();
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ObservableCollection<InputMethodItem> InputMethods { get; } = new();
     public ObservableCollection<GamePathOption> GamePathOptions { get; } = new();
+    public string AppVersionText { get; } = GetPackageVersionText();
     public string CurrentSelectedGamePathText
     {
         get => currentSelectedGamePathText;
@@ -55,6 +41,7 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
     public MainPage()
     {
         suppressSettingsSave = true;
+        SettingsPersistence.Initialize();
         InitializeComponent();
         LoadGamePathOptions();
         LoadInputMethods();
@@ -98,14 +85,23 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
             GamePathOptions.Add(option);
             SelectGamePath(option);
             ShowStatus(SR("Status/CustomGamePathAdded"), InfoBarSeverity.Success);
-            SaveSettings();
+            SaveSelectedGamePath();
+            SaveCustomGamePaths();
         }
     }
 
     private void RefreshImeButton_Click(object sender, RoutedEventArgs e)
     {
-        LoadInputMethods();
-        LoadSavedCustomIme();
+        suppressSettingsSave = true;
+        try
+        {
+            LoadInputMethods();
+            LoadSavedCustomIme();
+        }
+        finally
+        {
+            suppressSettingsSave = false;
+        }
     }
 
     private void GamePathRadioButton_Checked(object sender, RoutedEventArgs e)
@@ -116,12 +112,17 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
         }
 
         SelectGamePath(option);
-        SaveSettings();
+        SaveSelectedGamePath();
     }
 
-    private void DeleteCustomGamePathButton_Click(object sender, RoutedEventArgs e)
+    private async void DeleteCustomGamePathButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: GamePathOption option } || !option.IsCustom)
+        {
+            return;
+        }
+
+        if (!await ConfirmDeleteCustomGamePathAsync(option))
         {
             return;
         }
@@ -134,7 +135,8 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
         }
 
         ShowStatus(SR("Status/CustomGamePathDeleted"), InfoBarSeverity.Success);
-        SaveSettings();
+        SaveSelectedGamePath();
+        SaveCustomGamePaths();
     }
 
     private void OpenFolderButton_Click(object sender, RoutedEventArgs e)
@@ -221,10 +223,10 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
 
         InputMethods.Add(newItem);
         ShowStatus(SR("Status/CustomImeAdded"), InfoBarSeverity.Success);
-        SaveSettings();
+        SaveCustomInputMethods();
     }
 
-    private void DeleteCustomImeButton_Click(object sender, RoutedEventArgs e)
+    private async void DeleteCustomImeButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: InputMethodItem item })
         {
@@ -236,9 +238,24 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
             return;
         }
 
+        if (!await ConfirmDeleteCustomImeAsync(item.DisplayName))
+        {
+            return;
+        }
+
         _ = InputMethods.Remove(item);
         ShowStatus(SR("Status/CustomImeDeleted"), InfoBarSeverity.Success);
-        SaveSettings();
+        SaveCustomInputMethods();
+    }
+
+    private void ImeCategoryComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is ComboBox { Tag: InputMethodItem item, SelectedIndex: >= 0 } comboBox)
+        {
+            item.CategoryIndex = comboBox.SelectedIndex;
+        }
+
+        SaveCustomInputMethods();
     }
 
     private async void WriteConfigButton_Click(object sender, RoutedEventArgs e)
@@ -257,13 +274,13 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
             return;
         }
 
-        if (!HasGameExecutable(gameRoot))
+        if (!GameConfigService.HasGameExecutable(gameRoot))
         {
             ShowStatus(SR("Status/GameExeNotFound"), InfoBarSeverity.Error);
             return;
         }
 
-        var targetFiles = ResolveTargetConfigFiles(gameRoot);
+        var targetFiles = GameConfigService.ResolveTargetConfigFiles(gameRoot);
         if (targetFiles.Count == 0)
         {
             ShowStatus(SR("Status/BinVersionDirectoryNotFound"), InfoBarSeverity.Error);
@@ -290,24 +307,12 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
             }
         }
 
-        var document = BuildConfigDocument(selectedIme);
         try
         {
-            foreach (var targetFile in targetFiles)
-            {
-                var targetDirectory = Path.GetDirectoryName(targetFile);
-                if (!string.IsNullOrEmpty(targetDirectory))
-                {
-                    Directory.CreateDirectory(targetDirectory);
-                }
-
-                await using var stream = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None);
-                await using var writer = new StreamWriter(stream, new UTF8Encoding(false));
-                await writer.WriteAsync(document.ToString());
-            }
-
+            await GameConfigService.WriteConfigFilesAsync(targetFiles, selectedIme);
             ShowStatus(SRF("Status/WriteSucceededWithCount", targetFiles.Count), InfoBarSeverity.Success);
-            SaveSettings();
+            SaveSelectedGamePath();
+            SaveCustomInputMethods();
         }
         catch (Exception ex)
         {
@@ -338,7 +343,7 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
         InputMethods.Clear();
         string? warning;
 
-        foreach (var ime in ReadImeCandidatesFromRegistry(out warning))
+        foreach (var ime in InputMethodScanner.ReadCandidates(out warning))
         {
             InputMethods.Add(new InputMethodItem(ime.DisplayName, ime.Category));
         }
@@ -352,317 +357,6 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
         }
 
         ShowStatus(SRF("Status/ScanCompletedWithCount", InputMethods.Count), InfoBarSeverity.Success);
-    }
-
-    private static IEnumerable<ScannedImeCandidate> ReadImeCandidatesFromRegistry(out string? warning)
-    {
-        warning = null;
-        var candidates = new Dictionary<string, ScannedImeCandidate>(StringComparer.OrdinalIgnoreCase);
-        foreach (var candidate in ReadImeCandidatesFromTsf(out warning))
-        {
-            UpsertCandidate(candidates, candidate);
-        }
-
-        return candidates.Values.OrderBy(item => item.DisplayName, StringComparer.CurrentCultureIgnoreCase);
-    }
-
-    private static IEnumerable<ScannedImeCandidate> ReadImeCandidatesFromTsf(out string? warning)
-    {
-        warning = null;
-        var candidates = new List<ScannedImeCandidate>();
-        var coInitHr = CoInitializeEx(IntPtr.Zero, COINIT_APARTMENTTHREADED);
-        var shouldUninitialize = coInitHr == 0 || coInitHr == 1;
-        if (coInitHr < 0 && coInitHr != unchecked((int)0x80010106))
-        {
-            warning = SRF("Tsf/CoInitializeFailed", $"0x{coInitHr:X8}");
-            return candidates;
-        }
-
-        try
-        {
-            var profilesPtr = CreateInputProcessorProfilesCom();
-            if (profilesPtr == IntPtr.Zero)
-            {
-                warning = SR("Tsf/CreateProfilesObjectFailed");
-                return candidates;
-            }
-
-            try
-            {
-                var hr = GetLanguageList(profilesPtr, out var langPtr, out var langCount);
-                if (hr < 0 || langPtr == IntPtr.Zero || langCount == 0)
-                {
-                    warning = hr < 0
-                        ? SRF("Tsf/GetLanguageListFailed", $"0x{hr:X8}")
-                        : SR("Tsf/GetLanguageListEmpty");
-                    return candidates;
-                }
-
-                try
-                {
-                    for (var i = 0; i < langCount; i++)
-                    {
-                        var langId = (ushort)Marshal.ReadInt16(langPtr, (int)i * sizeof(short));
-                        if (!IsTargetLanguageProfile(langId))
-                        {
-                            continue;
-                        }
-
-                        hr = EnumLanguageProfiles(profilesPtr, langId, out var enumProfilesPtr);
-                        if (hr < 0 || enumProfilesPtr == IntPtr.Zero)
-                        {
-                            continue;
-                        }
-
-                        try
-                        {
-                            while (true)
-                            {
-                                var items = new TF_LANGUAGEPROFILE[1];
-                                hr = EnumLanguageProfilesNext(enumProfilesPtr, 1, items, out var fetched);
-                                if (hr != 0 || fetched == 0)
-                                {
-                                    break;
-                                }
-
-                                var item = items[0];
-                                var enabledHr = IsEnabledLanguageProfile(
-                                    profilesPtr,
-                                    ref item.clsid,
-                                    item.langid,
-                                    ref item.guidProfile,
-                                    out var enabled);
-                                if (enabledHr < 0 || enabled == 0)
-                                {
-                                    continue;
-                                }
-
-                                var name = GetTsfProfileDescription(profilesPtr, item);
-                                if (string.IsNullOrWhiteSpace(name))
-                                {
-                                    continue;
-                                }
-
-                                name = NormalizeImeDisplayName(name);
-                                if (IsNoiseImeName(name))
-                                {
-                                    continue;
-                                }
-
-                                var category = InferCategoryFromLangId(item.langid)
-                                    ?? InferCategoryFromName(name)
-                                    ?? ImeCategory.ChineseSimplified;
-
-                                candidates.Add(new ScannedImeCandidate(name, category, 10));
-                            }
-                        }
-                        finally
-                        {
-                            _ = Marshal.Release(enumProfilesPtr);
-                        }
-                    }
-                }
-                finally
-                {
-                    CoTaskMemFree(langPtr);
-                }
-            }
-            finally
-            {
-                _ = Marshal.Release(profilesPtr);
-            }
-        }
-        catch (COMException ex)
-        {
-            warning = SRF("Tsf/ComException", $"0x{ex.HResult:X8}", ex.Message);
-            return candidates;
-        }
-        catch (Exception ex)
-        {
-            warning = SRF("Tsf/GenericException", ex.Message);
-            return candidates;
-        }
-        finally
-        {
-            if (shouldUninitialize)
-            {
-                CoUninitialize();
-            }
-        }
-
-        return candidates;
-    }
-
-    private static IntPtr CreateInputProcessorProfilesCom()
-    {
-        // CLSID_TF_InputProcessorProfiles
-        var clsid = new Guid("33C53A50-F456-4884-B049-85FD643ECFED");
-        var iid = new Guid("1F02B6C5-7842-4EE6-8A0B-9A24183A95CA");
-        var hr = CoCreateInstance(ref clsid, IntPtr.Zero, CLSCTX_INPROC_SERVER, ref iid, out var ptr);
-        if (hr < 0)
-        {
-            return IntPtr.Zero;
-        }
-
-        return ptr;
-    }
-
-    private static string? GetTsfProfileDescription(IntPtr profilesPtr, TF_LANGUAGEPROFILE item)
-    {
-        var hr = GetLanguageProfileDescription(profilesPtr, ref item.clsid, item.langid, ref item.guidProfile, out var bstrPtr);
-        if (hr >= 0 && bstrPtr != IntPtr.Zero)
-        {
-            try
-            {
-                var tsfDescription = Marshal.PtrToStringBSTR(bstrPtr);
-                if (!string.IsNullOrWhiteSpace(tsfDescription))
-                {
-                    return tsfDescription;
-                }
-            }
-            finally
-            {
-                SysFreeString(bstrPtr);
-            }
-        }
-
-        return null;
-    }
-
-    private static void UpsertCandidate(IDictionary<string, ScannedImeCandidate> candidates, ScannedImeCandidate candidate)
-    {
-        if (!candidates.TryGetValue(candidate.DisplayName, out var existing) || candidate.Confidence > existing.Confidence)
-        {
-            candidates[candidate.DisplayName] = candidate;
-        }
-    }
-
-    private static bool IsTargetLanguageProfile(ushort? langId) => langId is
-        0x0804 or // zh-CN
-        0x0404 or // zh-TW
-        0x0C04 or // zh-HK
-        0x1004 or // zh-SG
-        0x1404 or // zh-MO
-        0x0411;   // ja-JP
-
-    private static string NormalizeImeDisplayName(string name)
-    {
-        if (name.Contains("wetype", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(name, SR("Ime/Weixin"), StringComparison.OrdinalIgnoreCase))
-        {
-            return SR("Ime/Weixin");
-        }
-
-        return name.Trim();
-    }
-
-    private static bool IsNoiseImeName(string name) =>
-        name.Contains("输入体验", StringComparison.OrdinalIgnoreCase) ||
-        name.Contains("Input Experience", StringComparison.OrdinalIgnoreCase);
-
-    private static ImeCategory? InferCategoryFromLangId(ushort? langId) => langId switch
-    {
-        0x0804 or 0x1004 => ImeCategory.ChineseSimplified,
-        0x0404 or 0x0C04 or 0x1404 => ImeCategory.ChineseTraditional,
-        0x0411 => ImeCategory.Japanese,
-        _ => null
-    };
-
-    private static ImeCategory? InferCategoryFromName(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return null;
-        }
-
-        if (name.Contains("速成", StringComparison.OrdinalIgnoreCase) ||
-            name.Contains("倉頡", StringComparison.OrdinalIgnoreCase) ||
-            name.Contains("仓颉", StringComparison.OrdinalIgnoreCase) ||
-            name.Contains("注音", StringComparison.OrdinalIgnoreCase) ||
-            name.Contains("Quick", StringComparison.OrdinalIgnoreCase) ||
-            name.Contains("Cangjie", StringComparison.OrdinalIgnoreCase))
-        {
-            return ImeCategory.ChineseTraditional;
-        }
-
-        if (name.Contains("Japanese", StringComparison.OrdinalIgnoreCase) ||
-            name.Contains("日文", StringComparison.OrdinalIgnoreCase))
-        {
-            return ImeCategory.Japanese;
-        }
-
-        if (name.Contains("拼音", StringComparison.OrdinalIgnoreCase) ||
-            name.Contains("五笔", StringComparison.OrdinalIgnoreCase) ||
-            name.Contains(SR("Ime/Weixin"), StringComparison.OrdinalIgnoreCase))
-        {
-            return ImeCategory.ChineseSimplified;
-        }
-
-        return null;
-    }
-
-
-    private static bool HasGameExecutable(string gameRoot)
-    {
-        var wows = Path.Combine(gameRoot, WowsExeName);
-        var korabli = Path.Combine(gameRoot, KorabliExeName);
-        return File.Exists(wows) || File.Exists(korabli);
-    }
-
-    private static List<string> ResolveTargetConfigFiles(string gameRoot)
-    {
-        var binPath = Path.Combine(gameRoot, "bin");
-        var results = new List<string>();
-
-        if (Directory.Exists(binPath))
-        {
-            var numericVersionDirs = Directory
-                .GetDirectories(binPath)
-                .Where(path => int.TryParse(Path.GetFileName(path), out _))
-                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            foreach (var versionDir in numericVersionDirs)
-            {
-                results.Add(Path.Combine(versionDir, TargetConfigRelativePath));
-            }
-        }
-
-        return results;
-    }
-
-    private XDocument BuildConfigDocument(IEnumerable<InputMethodItem> selectedIme)
-    {
-        var simplified = new XElement("ChineseSimplified");
-        var traditional = new XElement("ChineseTraditional");
-        var japanese = new XElement("Japanese");
-
-        foreach (var ime in selectedIme)
-        {
-            var target = ime.Category switch
-            {
-                ImeCategory.ChineseSimplified => simplified,
-                ImeCategory.ChineseTraditional => traditional,
-                _ => japanese
-            };
-
-            var tag = ime.Category switch
-            {
-                ImeCategory.ChineseSimplified => TagSimplified,
-                ImeCategory.ChineseTraditional => TagTraditional,
-                _ => TagJapanese
-            };
-
-            target.Add(new XElement("imeName", ime.DisplayName));
-            target.Add(new XElement("displayName", ime.DisplayName));
-            target.Add(new XElement("Tag", tag));
-        }
-
-        return new XDocument(
-            new XElement("data",
-                new XElement("language", simplified, japanese, traditional)
-            )
-        );
     }
 
     private async Task<bool> ConfirmOverwriteAsync(int existingCount)
@@ -697,22 +391,48 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
         return result == ContentDialogResult.Primary;
     }
 
+    private async Task<bool> ConfirmDeleteCustomGamePathAsync(GamePathOption option)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = SR("Dialog/DeleteCustomGamePath/Title"),
+            Content = SRF("Dialog/DeleteCustomGamePath/Content", option.DisplayName, option.Path),
+            PrimaryButtonText = SR("Dialog/DeleteCustomGamePath/PrimaryButton"),
+            CloseButtonText = SR("Dialog/Common/Cancel"),
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = XamlRoot
+        };
+
+        var result = await dialog.ShowAsync();
+        return result == ContentDialogResult.Primary;
+    }
+
+    private async Task<bool> ConfirmDeleteCustomImeAsync(string displayName)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = SR("Dialog/DeleteCustomIme/Title"),
+            Content = SRF("Dialog/DeleteCustomIme/Content", displayName),
+            PrimaryButtonText = SR("Dialog/DeleteCustomIme/PrimaryButton"),
+            CloseButtonText = SR("Dialog/Common/Cancel"),
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = XamlRoot
+        };
+
+        var result = await dialog.ShowAsync();
+        return result == ContentDialogResult.Primary;
+    }
+
     private void LoadSavedCustomIme()
     {
-        var settings = LoadSettings();
-        if (settings?.Ime is null || settings.Ime.Count == 0)
+        foreach (var savedIme in SettingsPersistence.LoadCustomInputMethods())
         {
-            return;
-        }
-
-        foreach (var savedIme in settings.Ime)
-        {
-            if (string.IsNullOrWhiteSpace(savedIme.Name))
+            if (string.IsNullOrWhiteSpace(savedIme.DisplayName))
             {
                 continue;
             }
 
-            if (InputMethods.Any(item => string.Equals(item.DisplayName, savedIme.Name, StringComparison.OrdinalIgnoreCase)))
+            if (InputMethods.Any(item => string.Equals(item.DisplayName, savedIme.DisplayName, StringComparison.OrdinalIgnoreCase)))
             {
                 continue;
             }
@@ -724,50 +444,40 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
                 _ => ImeCategory.ChineseSimplified
             };
 
-            InputMethods.Add(new InputMethodItem(savedIme.Name, category, isCustom: true));
+            InputMethods.Add(new InputMethodItem(savedIme.DisplayName, category, isCustom: true));
         }
     }
 
     private void LoadGamePathOptions()
     {
-        var settings = LoadSettings();
-
         GamePathOptions.Clear();
         GamePathOptions.Add(new GamePathOption(SR("GamePathOption/Steam"), SteamDefaultPath));
         GamePathOptions.Add(new GamePathOption(SR("GamePathOption/Lesta"), LestaDefaultPath));
         GamePathOptions.Add(new GamePathOption(SR("GamePathOption/Cn360"), Cn360DefaultPath));
 
-        if (settings?.GamePaths is not null)
+        foreach (var customPath in SettingsPersistence.LoadCustomGamePaths())
         {
-            foreach (var customPath in settings.GamePaths)
+            var path = customPath.Path?.Trim();
+            if (string.IsNullOrWhiteSpace(path))
             {
-                var path = customPath.Path?.Trim();
-                if (string.IsNullOrWhiteSpace(path))
-                {
-                    continue;
-                }
-
-                if (GamePathOptions.Any(item => string.Equals(item.Path, path, StringComparison.OrdinalIgnoreCase)))
-                {
-                    continue;
-                }
-
-                var displayName = string.IsNullOrWhiteSpace(customPath.Name) ? Path.GetFileName(path) : customPath.Name;
-                if (string.IsNullOrWhiteSpace(displayName))
-                {
-                    displayName = path;
-                }
-
-                GamePathOptions.Add(new GamePathOption(displayName, path, isCustom: true));
+                continue;
             }
+
+            if (GamePathOptions.Any(item => string.Equals(item.Path, path, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
+            var displayName = string.IsNullOrWhiteSpace(customPath.DisplayName) ? Path.GetFileName(path) : customPath.DisplayName;
+            if (string.IsNullOrWhiteSpace(displayName))
+            {
+                displayName = path;
+            }
+
+            GamePathOptions.Add(new GamePathOption(displayName, path, isCustom: true));
         }
 
-        var selectedPath = settings?.SelectedGamePath;
-        if (string.IsNullOrWhiteSpace(selectedPath))
-        {
-            selectedPath = settings?.GameDir;
-        }
-
+        var selectedPath = SettingsPersistence.LoadSelectedGamePath();
         var selected = GamePathOptions.FirstOrDefault(item => string.Equals(item.Path, selectedPath, StringComparison.OrdinalIgnoreCase));
         SelectGamePath(selected ?? GamePathOptions.FirstOrDefault());
     }
@@ -792,101 +502,40 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
         return GamePathOptions.FirstOrDefault(item => item.IsSelected)?.Path?.Trim() ?? string.Empty;
     }
 
-    private AppSettings? LoadSettings()
-    {
-        try
-        {
-            var path = GetSettingsPath();
-            if (!File.Exists(path))
-            {
-                return null;
-            }
-
-            var json = File.ReadAllText(path, Encoding.UTF8);
-            return JsonSerializer.Deserialize(json, AppJsonContext.Default.AppSettings);
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    private void SaveSettings()
+    private void SaveSelectedGamePath()
     {
         if (suppressSettingsSave)
         {
             return;
         }
 
-        try
-        {
-            var settings = new AppSettings
-            {
-                SelectedGamePath = GetSelectedGameRootPath(),
-                GameDir = GetSelectedGameRootPath(),
-                GamePaths = GamePathOptions
-                    .Where(item => item.IsCustom)
-                    .Select(item => new SavedGamePath
-                    {
-                        Name = item.DisplayName,
-                        Path = item.Path
-                    })
-                    .ToList(),
-                Ime = InputMethods
-                    .Where(item => item.IsCustom)
-                    .Select(item => new SavedIme
-                    {
-                        Name = item.DisplayName,
-                        Category = item.Category.ToString()
-                    })
-                    .ToList()
-            };
-
-            var path = GetSettingsPath();
-            var directory = Path.GetDirectoryName(path);
-            if (!string.IsNullOrWhiteSpace(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            var json = JsonSerializer.Serialize(settings, AppJsonContext.Default.AppSettings);
-            File.WriteAllText(path, json, new UTF8Encoding(false));
-        }
-        catch
-        {
-            // Keep failures silent to avoid breaking the main workflow.
-        }
+        SettingsPersistence.SaveSelectedGamePath(GetSelectedGameRootPath());
     }
 
-    private static string GetSettingsPath()
+    private void SaveCustomGamePaths()
     {
-        var settingsDirectory = GetSettingsDirectory();
-        return Path.Combine(settingsDirectory, "config.json");
+        if (suppressSettingsSave)
+        {
+            return;
+        }
+
+        var customPaths = GamePathOptions
+            .Where(item => item.IsCustom)
+            .Select(item => new PersistedGamePath(item.DisplayName, item.Path));
+        SettingsPersistence.SaveCustomGamePaths(customPaths);
     }
 
-    private static string GetSettingsDirectory()
+    private void SaveCustomInputMethods()
     {
-        if (IsPackagedApp())
+        if (suppressSettingsSave)
         {
-            return ApplicationData.Current.LocalFolder.Path;
+            return;
         }
 
-        return Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "wows-ime");
-    }
-
-    private static bool IsPackagedApp()
-    {
-        try
-        {
-            _ = Windows.ApplicationModel.Package.Current;
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        var customInputMethods = InputMethods
+            .Where(item => item.IsCustom)
+            .Select(item => new PersistedInputMethod(item.DisplayName, item.Category.ToString()));
+        SettingsPersistence.SaveCustomInputMethods(customInputMethods);
     }
 
     private void ShowStatus(string message, InfoBarSeverity severity)
@@ -898,233 +547,26 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
 
     private static string SR(string key)
     {
-        var value = ResourceLoader.GetString(key);
-        return string.IsNullOrEmpty(value) ? key : value;
+        return AppResources.Get(key);
     }
 
     private static string SRF(string key, params object[] args)
     {
-        return string.Format(CultureInfo.CurrentUICulture, SR(key), args);
+        return AppResources.Format(key, args);
     }
 
-    private static int GetLanguageList(IntPtr profilesPtr, out IntPtr langPtr, out uint langCount)
+    private static string GetPackageVersionText()
     {
-        // ITfInputProcessorProfiles::GetLanguageList is vtable slot 15 (IUnknown + 12 methods before it).
-        var fn = GetVtableDelegate<TfGetLanguageListDelegate>(profilesPtr, 15);
-        return fn(profilesPtr, out langPtr, out langCount);
-    }
-
-    private static int EnumLanguageProfiles(IntPtr profilesPtr, ushort langId, out IntPtr enumProfilesPtr)
-    {
-        // ITfInputProcessorProfiles::EnumLanguageProfiles is vtable slot 16.
-        var fn = GetVtableDelegate<TfEnumLanguageProfilesDelegate>(profilesPtr, 16);
-        return fn(profilesPtr, langId, out enumProfilesPtr);
-    }
-
-    private static int GetLanguageProfileDescription(IntPtr profilesPtr, ref Guid clsid, ushort langId, ref Guid profileGuid, out IntPtr bstrPtr)
-    {
-        // ITfInputProcessorProfiles::GetLanguageProfileDescription is vtable slot 12.
-        var fn = GetVtableDelegate<TfGetLanguageProfileDescriptionDelegate>(profilesPtr, 12);
-        return fn(profilesPtr, ref clsid, langId, ref profileGuid, out bstrPtr);
-    }
-
-    private static int EnumLanguageProfilesNext(IntPtr enumProfilesPtr, uint count, TF_LANGUAGEPROFILE[] buffer, out uint fetched)
-    {
-        // IEnumTfLanguageProfiles::Next is vtable slot 4.
-        var fn = GetVtableDelegate<TfEnumLanguageProfilesNextDelegate>(enumProfilesPtr, 4);
-        return fn(enumProfilesPtr, count, buffer, out fetched);
-    }
-
-    private static int IsEnabledLanguageProfile(IntPtr profilesPtr, ref Guid clsid, ushort langId, ref Guid profileGuid, out int enabled)
-    {
-        // ITfInputProcessorProfiles::IsEnabledLanguageProfile is vtable slot 18.
-        var fn = GetVtableDelegate<TfIsEnabledLanguageProfileDelegate>(profilesPtr, 18);
-        return fn(profilesPtr, ref clsid, langId, ref profileGuid, out enabled);
-    }
-
-    private static T GetVtableDelegate<T>(IntPtr comPtr, int methodIndex) where T : Delegate
-    {
-        var vtable = Marshal.ReadIntPtr(comPtr);
-        var methodPtr = Marshal.ReadIntPtr(vtable, methodIndex * IntPtr.Size);
-        return Marshal.GetDelegateForFunctionPointer<T>(methodPtr);
-    }
-
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    private delegate int TfGetLanguageListDelegate(IntPtr @this, out IntPtr ppLangId, out uint pulCount);
-
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    private delegate int TfEnumLanguageProfilesDelegate(IntPtr @this, ushort langid, out IntPtr ppEnum);
-
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    private delegate int TfGetLanguageProfileDescriptionDelegate(
-        IntPtr @this,
-        ref Guid rclsid,
-        ushort langid,
-        ref Guid guidProfile,
-        out IntPtr pbstrProfile);
-
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    private delegate int TfEnumLanguageProfilesNextDelegate(
-        IntPtr @this,
-        uint ulCount,
-        [Out] TF_LANGUAGEPROFILE[] pProfile,
-        out uint pcFetch);
-
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    private delegate int TfIsEnabledLanguageProfileDelegate(
-        IntPtr @this,
-        ref Guid rclsid,
-        ushort langid,
-        ref Guid guidProfile,
-        out int pfEnable);
-
-    [DllImport("ole32.dll")]
-    private static extern int CoCreateInstance(
-        ref Guid rclsid,
-        IntPtr pUnkOuter,
-        uint dwClsContext,
-        ref Guid riid,
-        out IntPtr ppv);
-
-    [DllImport("ole32.dll")]
-    private static extern void CoTaskMemFree(IntPtr pv);
-
-    [DllImport("ole32.dll")]
-    private static extern int CoInitializeEx(IntPtr pvReserved, uint dwCoInit);
-
-    [DllImport("ole32.dll")]
-    private static extern void CoUninitialize();
-
-    [DllImport("oleaut32.dll")]
-    private static extern void SysFreeString(IntPtr bstr);
-
-    private const uint COINIT_APARTMENTTHREADED = 0x2;
-    private const uint CLSCTX_INPROC_SERVER = 0x1;
-}
-
-public enum ImeCategory
-{
-    ChineseSimplified = 0,
-    ChineseTraditional = 1,
-    Japanese = 2
-}
-
-public sealed class InputMethodItem : Microsoft.UI.Xaml.DependencyObject
-{
-    public InputMethodItem(string displayName, ImeCategory initialCategory = ImeCategory.ChineseSimplified, bool isCustom = false)
-    {
-        DisplayName = displayName;
-        Category = initialCategory;
-        CategoryIndex = (int)initialCategory;
-        IsCustom = isCustom;
-    }
-
-    public string DisplayName { get; }
-    public bool IsCustom { get; }
-    public Visibility DeleteButtonVisibility => IsCustom ? Visibility.Visible : Visibility.Collapsed;
-
-    public bool IsSelected
-    {
-        get => (bool)GetValue(IsSelectedProperty);
-        set => SetValue(IsSelectedProperty, value);
-    }
-
-    public static readonly Microsoft.UI.Xaml.DependencyProperty IsSelectedProperty =
-        Microsoft.UI.Xaml.DependencyProperty.Register(
-            nameof(IsSelected),
-            typeof(bool),
-            typeof(InputMethodItem),
-            new PropertyMetadata(false));
-
-    public int CategoryIndex
-    {
-        get => (int)GetValue(CategoryIndexProperty);
-        set
+        try
         {
-            SetValue(CategoryIndexProperty, value);
-            Category = value switch
-            {
-                1 => ImeCategory.ChineseTraditional,
-                2 => ImeCategory.Japanese,
-                _ => ImeCategory.ChineseSimplified
-            };
+            var version = Windows.ApplicationModel.Package.Current.Id.Version;
+            return $"{version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
+        }
+        catch
+        {
+            return string.Empty;
         }
     }
-
-    public static readonly Microsoft.UI.Xaml.DependencyProperty CategoryIndexProperty =
-        Microsoft.UI.Xaml.DependencyProperty.Register(
-            nameof(CategoryIndex),
-            typeof(int),
-            typeof(InputMethodItem),
-            new PropertyMetadata(0));
-
-    public ImeCategory Category { get; private set; }
-}
-
-public sealed class GamePathOption : Microsoft.UI.Xaml.DependencyObject
-{
-    public GamePathOption(string displayName, string path, bool isCustom = false)
-    {
-        DisplayName = displayName;
-        Path = path;
-        IsCustom = isCustom;
-    }
-
-    public string DisplayName { get; }
-    public string Path { get; }
-    public bool IsCustom { get; }
-    public Visibility DeleteButtonVisibility => IsCustom ? Visibility.Visible : Visibility.Collapsed;
-
-    public bool IsSelected
-    {
-        get => (bool)GetValue(IsSelectedProperty);
-        set => SetValue(IsSelectedProperty, value);
-    }
-
-    public static readonly Microsoft.UI.Xaml.DependencyProperty IsSelectedProperty =
-        Microsoft.UI.Xaml.DependencyProperty.Register(
-            nameof(IsSelected),
-            typeof(bool),
-            typeof(GamePathOption),
-            new PropertyMetadata(false));
-}
-
-public sealed record ScannedImeCandidate(string DisplayName, ImeCategory Category, int Confidence);
-
-public sealed class AppSettings
-{
-    public string? SelectedGamePath { get; set; }
-    public string? GameDir { get; set; }
-    public List<SavedGamePath> GamePaths { get; set; } = new();
-    public List<SavedIme> Ime { get; set; } = new();
-}
-
-public sealed class SavedGamePath
-{
-    public string? Name { get; set; }
-    public string? Path { get; set; }
-}
-
-public sealed class SavedIme
-{
-    public string? Name { get; set; }
-    public string Category { get; set; } = nameof(ImeCategory.ChineseSimplified);
-}
-
-[JsonSourceGenerationOptions(WriteIndented = true)]
-[JsonSerializable(typeof(AppSettings))]
-internal partial class AppJsonContext : JsonSerializerContext
-{
-}
-
-[StructLayout(LayoutKind.Sequential)]
-internal struct TF_LANGUAGEPROFILE
-{
-    public Guid clsid;
-    public ushort langid;
-    public Guid catid;
-    public int fActive;
-    public Guid guidProfile;
 }
 
 

@@ -18,6 +18,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v6
 
-    - uses: ncipollo/release-action@v1
+    - name: Create Release
+      uses: ncipollo/release-action@v1
       with:
         tag: ${{ inputs.tag }}

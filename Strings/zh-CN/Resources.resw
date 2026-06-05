@@ -120,11 +120,11 @@
   <data name="App/Title" xml:space="preserve">
     <value>战舰世界输入法配置工具</value>
   </data>
-  <data name="MainTitleText.Text" xml:space="preserve">
+  <data name="AppDisplayName" xml:space="preserve">
     <value>战舰世界输入法配置工具</value>
   </data>
-  <data name="MainSubtitleText.Text" xml:space="preserve">
-    <value>扫描本机输入法，勾选并指定类型后写入游戏目录的 ime_config.xml。</value>
+  <data name="AppDescription" xml:space="preserve">
+    <value>战舰世界中文输入法配置工具</value>
   </data>
   <data name="GameRootLabel.Text" xml:space="preserve">
     <value>游戏根目录</value>
@@ -186,6 +186,9 @@
   <data name="ProjectRepositoryCardHeader.Text" xml:space="preserve">
     <value>项目仓库</value>
   </data>
+  <data name="AppVersionCardHeader.Text" xml:space="preserve">
+    <value>软件版本</value>
+  </data>
   <data name="OpenProjectRepositoryButton.Content" xml:space="preserve">
     <value>打开仓库</value>
   </data>
@@ -233,6 +236,24 @@
   </data>
   <data name="Dialog/AddCustomIme/PrimaryButton" xml:space="preserve">
     <value>添加</value>
+  </data>
+  <data name="Dialog/DeleteCustomIme/Title" xml:space="preserve">
+    <value>删除自定义输入法</value>
+  </data>
+  <data name="Dialog/DeleteCustomIme/Content" xml:space="preserve">
+    <value>确定要删除“{0}”吗？</value>
+  </data>
+  <data name="Dialog/DeleteCustomIme/PrimaryButton" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="Dialog/DeleteCustomGamePath/Title" xml:space="preserve">
+    <value>删除自定义路径</value>
+  </data>
+  <data name="Dialog/DeleteCustomGamePath/Content" xml:space="preserve">
+    <value>确定要删除“{0}”吗？&#x0A;{1}</value>
+  </data>
+  <data name="Dialog/DeleteCustomGamePath/PrimaryButton" xml:space="preserve">
+    <value>删除</value>
   </data>
   <data name="Dialog/Overwrite/Title" xml:space="preserve">
     <value>发现已有配置文件</value>

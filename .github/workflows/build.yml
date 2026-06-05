@@ -9,7 +9,7 @@ env:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
 
     steps:
     - name: Checkout code
@@ -40,19 +40,16 @@ jobs:
 
         echo "THUMBPRINT=$($cert.Thumbprint)" >> $env:GITHUB_OUTPUT
 
-    - name: Dotnet Restore
-      shell: pwsh
-      run: dotnet restore ${{ env.PROJECTCSPROJ }}
-
-    - name: Dotnet Build
+    - name: MSBuild Package
       shell: pwsh
       run: |
-        dotnet build ${{ env.PROJECTCSPROJ }} `
-          -c Release `
+        msbuild ${{ env.PROJECTCSPROJ }} `
+          /restore `
+          /p:Configuration=Release `
           /p:WindowsPackageType=MSIX `
           /p:GenerateAppxPackageOnBuild=true `
           /p:AppxBundle=Always `
-          "/p:AppxBundlePlatforms=x64|x86|ARM64" `
+          "/p:AppxBundlePlatforms=x64|ARM64|x86" `
           /p:Platform=x64 `
           /p:AppxPackageSigningEnabled=true `
           /p:PackageCertificateThumbprint="${{ steps.cert.outputs.THUMBPRINT }}"
@@ -62,7 +59,7 @@ jobs:
       with:
         name: wows-ime
         path: |
-          **/*.msixbundle
+          **/wows-ime*.msixbundle
         if-no-files-found: error
 
     - name: Cleanup Certificate
