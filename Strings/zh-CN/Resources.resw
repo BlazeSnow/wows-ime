@@ -120,6 +120,12 @@
   <data name="App/Title" xml:space="preserve">
     <value>战舰世界输入法配置工具</value>
   </data>
+  <data name="AppDisplayName" xml:space="preserve">
+    <value>战舰世界输入法配置工具</value>
+  </data>
+  <data name="AppDescription" xml:space="preserve">
+    <value>战舰世界中文输入法配置工具</value>
+  </data>
   <data name="MainTitleText.Text" xml:space="preserve">
     <value>战舰世界输入法配置工具</value>
   </data>
