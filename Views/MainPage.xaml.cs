@@ -220,7 +220,7 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
         SaveCustomInputMethods();
     }
 
-    private void DeleteCustomImeButton_Click(object sender, RoutedEventArgs e)
+    private async void DeleteCustomImeButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: InputMethodItem item })
         {
@@ -228,6 +228,11 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
         }
 
         if (!item.IsCustom)
+        {
+            return;
+        }
+
+        if (!await ConfirmDeleteCustomImeAsync(item.DisplayName))
         {
             return;
         }
@@ -373,6 +378,22 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
             PrimaryButtonText = SR("Dialog/AddConfig/PrimaryButton"),
             CloseButtonText = SR("Dialog/Common/Cancel"),
             DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot
+        };
+
+        var result = await dialog.ShowAsync();
+        return result == ContentDialogResult.Primary;
+    }
+
+    private async Task<bool> ConfirmDeleteCustomImeAsync(string displayName)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = SR("Dialog/DeleteCustomIme/Title"),
+            Content = SRF("Dialog/DeleteCustomIme/Content", displayName),
+            PrimaryButtonText = SR("Dialog/DeleteCustomIme/PrimaryButton"),
+            CloseButtonText = SR("Dialog/Common/Cancel"),
+            DefaultButton = ContentDialogButton.Close,
             XamlRoot = XamlRoot
         };
 
