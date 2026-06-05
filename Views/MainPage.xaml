@@ -23,6 +23,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <StackPanel Spacing="4">
@@ -235,6 +236,17 @@
                     <TextBlock x:Uid="ProjectRepositoryCardHeader" FontSize="16" FontWeight="SemiBold" />
                 </toolkit:SettingsCard.Header>
                 <Button x:Uid="OpenProjectRepositoryButton" Click="OpenProjectRepositoryButton_Click" />
+            </toolkit:SettingsCard>
+
+            <toolkit:SettingsCard
+                Grid.Row="7">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE946;" />
+                </toolkit:SettingsCard.HeaderIcon>
+                <toolkit:SettingsCard.Header>
+                    <TextBlock x:Uid="AppVersionCardHeader" FontSize="16" FontWeight="SemiBold" />
+                </toolkit:SettingsCard.Header>
+                <TextBlock Text="{x:Bind AppVersionText}" />
             </toolkit:SettingsCard>
 
             <InfoBar Grid.Row="4" x:Name="StatusInfoBar" IsOpen="False" IsClosable="False" />

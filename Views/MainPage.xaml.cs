@@ -22,6 +22,7 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
 
     public ObservableCollection<InputMethodItem> InputMethods { get; } = new();
     public ObservableCollection<GamePathOption> GamePathOptions { get; } = new();
+    public string AppVersionText { get; } = GetPackageVersionText();
     public string CurrentSelectedGamePathText
     {
         get => currentSelectedGamePathText;
@@ -552,6 +553,19 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
     private static string SRF(string key, params object[] args)
     {
         return AppResources.Format(key, args);
+    }
+
+    private static string GetPackageVersionText()
+    {
+        try
+        {
+            var version = Windows.ApplicationModel.Package.Current.Id.Version;
+            return $"{version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
+        }
+        catch
+        {
+            return string.Empty;
+        }
     }
 }
 

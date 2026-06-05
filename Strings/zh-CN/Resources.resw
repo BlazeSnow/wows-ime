@@ -192,6 +192,9 @@
   <data name="ProjectRepositoryCardHeader.Text" xml:space="preserve">
     <value>项目仓库</value>
   </data>
+  <data name="AppVersionCardHeader.Text" xml:space="preserve">
+    <value>软件版本</value>
+  </data>
   <data name="OpenProjectRepositoryButton.Content" xml:space="preserve">
     <value>打开仓库</value>
   </data>
