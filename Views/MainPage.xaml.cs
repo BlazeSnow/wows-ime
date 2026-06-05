@@ -6,8 +6,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Xml.Linq;
+using Microsoft.Data.Sqlite;
 using Windows.ApplicationModel.Resources;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -55,6 +55,7 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
     public MainPage()
     {
         suppressSettingsSave = true;
+        SettingsPersistence.Initialize();
         InitializeComponent();
         LoadGamePathOptions();
         LoadInputMethods();
@@ -98,14 +99,23 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
             GamePathOptions.Add(option);
             SelectGamePath(option);
             ShowStatus(SR("Status/CustomGamePathAdded"), InfoBarSeverity.Success);
-            SaveSettings();
+            SaveSelectedGamePath();
+            SaveCustomGamePaths();
         }
     }
 
     private void RefreshImeButton_Click(object sender, RoutedEventArgs e)
     {
-        LoadInputMethods();
-        LoadSavedCustomIme();
+        suppressSettingsSave = true;
+        try
+        {
+            LoadInputMethods();
+            LoadSavedCustomIme();
+        }
+        finally
+        {
+            suppressSettingsSave = false;
+        }
     }
 
     private void GamePathRadioButton_Checked(object sender, RoutedEventArgs e)
@@ -116,7 +126,7 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
         }
 
         SelectGamePath(option);
-        SaveSettings();
+        SaveSelectedGamePath();
     }
 
     private void DeleteCustomGamePathButton_Click(object sender, RoutedEventArgs e)
@@ -134,7 +144,8 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
         }
 
         ShowStatus(SR("Status/CustomGamePathDeleted"), InfoBarSeverity.Success);
-        SaveSettings();
+        SaveSelectedGamePath();
+        SaveCustomGamePaths();
     }
 
     private void OpenFolderButton_Click(object sender, RoutedEventArgs e)
@@ -221,7 +232,7 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
 
         InputMethods.Add(newItem);
         ShowStatus(SR("Status/CustomImeAdded"), InfoBarSeverity.Success);
-        SaveSettings();
+        SaveCustomInputMethods();
     }
 
     private void DeleteCustomImeButton_Click(object sender, RoutedEventArgs e)
@@ -238,7 +249,17 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
 
         _ = InputMethods.Remove(item);
         ShowStatus(SR("Status/CustomImeDeleted"), InfoBarSeverity.Success);
-        SaveSettings();
+        SaveCustomInputMethods();
+    }
+
+    private void ImeCategoryComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is ComboBox { Tag: InputMethodItem item, SelectedIndex: >= 0 } comboBox)
+        {
+            item.CategoryIndex = comboBox.SelectedIndex;
+        }
+
+        SaveCustomInputMethods();
     }
 
     private async void WriteConfigButton_Click(object sender, RoutedEventArgs e)
@@ -307,7 +328,8 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
             }
 
             ShowStatus(SRF("Status/WriteSucceededWithCount", targetFiles.Count), InfoBarSeverity.Success);
-            SaveSettings();
+            SaveSelectedGamePath();
+            SaveCustomInputMethods();
         }
         catch (Exception ex)
         {
@@ -699,20 +721,14 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
 
     private void LoadSavedCustomIme()
     {
-        var settings = LoadSettings();
-        if (settings?.Ime is null || settings.Ime.Count == 0)
+        foreach (var savedIme in SettingsPersistence.LoadCustomInputMethods())
         {
-            return;
-        }
-
-        foreach (var savedIme in settings.Ime)
-        {
-            if (string.IsNullOrWhiteSpace(savedIme.Name))
+            if (string.IsNullOrWhiteSpace(savedIme.DisplayName))
             {
                 continue;
             }
 
-            if (InputMethods.Any(item => string.Equals(item.DisplayName, savedIme.Name, StringComparison.OrdinalIgnoreCase)))
+            if (InputMethods.Any(item => string.Equals(item.DisplayName, savedIme.DisplayName, StringComparison.OrdinalIgnoreCase)))
             {
                 continue;
             }
@@ -724,50 +740,40 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
                 _ => ImeCategory.ChineseSimplified
             };
 
-            InputMethods.Add(new InputMethodItem(savedIme.Name, category, isCustom: true));
+            InputMethods.Add(new InputMethodItem(savedIme.DisplayName, category, isCustom: true));
         }
     }
 
     private void LoadGamePathOptions()
     {
-        var settings = LoadSettings();
-
         GamePathOptions.Clear();
         GamePathOptions.Add(new GamePathOption(SR("GamePathOption/Steam"), SteamDefaultPath));
         GamePathOptions.Add(new GamePathOption(SR("GamePathOption/Lesta"), LestaDefaultPath));
         GamePathOptions.Add(new GamePathOption(SR("GamePathOption/Cn360"), Cn360DefaultPath));
 
-        if (settings?.GamePaths is not null)
+        foreach (var customPath in SettingsPersistence.LoadCustomGamePaths())
         {
-            foreach (var customPath in settings.GamePaths)
+            var path = customPath.Path?.Trim();
+            if (string.IsNullOrWhiteSpace(path))
             {
-                var path = customPath.Path?.Trim();
-                if (string.IsNullOrWhiteSpace(path))
-                {
-                    continue;
-                }
-
-                if (GamePathOptions.Any(item => string.Equals(item.Path, path, StringComparison.OrdinalIgnoreCase)))
-                {
-                    continue;
-                }
-
-                var displayName = string.IsNullOrWhiteSpace(customPath.Name) ? Path.GetFileName(path) : customPath.Name;
-                if (string.IsNullOrWhiteSpace(displayName))
-                {
-                    displayName = path;
-                }
-
-                GamePathOptions.Add(new GamePathOption(displayName, path, isCustom: true));
+                continue;
             }
+
+            if (GamePathOptions.Any(item => string.Equals(item.Path, path, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
+            var displayName = string.IsNullOrWhiteSpace(customPath.DisplayName) ? Path.GetFileName(path) : customPath.DisplayName;
+            if (string.IsNullOrWhiteSpace(displayName))
+            {
+                displayName = path;
+            }
+
+            GamePathOptions.Add(new GamePathOption(displayName, path, isCustom: true));
         }
 
-        var selectedPath = settings?.SelectedGamePath;
-        if (string.IsNullOrWhiteSpace(selectedPath))
-        {
-            selectedPath = settings?.GameDir;
-        }
-
+        var selectedPath = SettingsPersistence.LoadSelectedGamePath();
         var selected = GamePathOptions.FirstOrDefault(item => string.Equals(item.Path, selectedPath, StringComparison.OrdinalIgnoreCase));
         SelectGamePath(selected ?? GamePathOptions.FirstOrDefault());
     }
@@ -792,101 +798,40 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
         return GamePathOptions.FirstOrDefault(item => item.IsSelected)?.Path?.Trim() ?? string.Empty;
     }
 
-    private AppSettings? LoadSettings()
-    {
-        try
-        {
-            var path = GetSettingsPath();
-            if (!File.Exists(path))
-            {
-                return null;
-            }
-
-            var json = File.ReadAllText(path, Encoding.UTF8);
-            return JsonSerializer.Deserialize(json, AppJsonContext.Default.AppSettings);
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    private void SaveSettings()
+    private void SaveSelectedGamePath()
     {
         if (suppressSettingsSave)
         {
             return;
         }
 
-        try
-        {
-            var settings = new AppSettings
-            {
-                SelectedGamePath = GetSelectedGameRootPath(),
-                GameDir = GetSelectedGameRootPath(),
-                GamePaths = GamePathOptions
-                    .Where(item => item.IsCustom)
-                    .Select(item => new SavedGamePath
-                    {
-                        Name = item.DisplayName,
-                        Path = item.Path
-                    })
-                    .ToList(),
-                Ime = InputMethods
-                    .Where(item => item.IsCustom)
-                    .Select(item => new SavedIme
-                    {
-                        Name = item.DisplayName,
-                        Category = item.Category.ToString()
-                    })
-                    .ToList()
-            };
-
-            var path = GetSettingsPath();
-            var directory = Path.GetDirectoryName(path);
-            if (!string.IsNullOrWhiteSpace(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            var json = JsonSerializer.Serialize(settings, AppJsonContext.Default.AppSettings);
-            File.WriteAllText(path, json, new UTF8Encoding(false));
-        }
-        catch
-        {
-            // Keep failures silent to avoid breaking the main workflow.
-        }
+        SettingsPersistence.SaveSelectedGamePath(GetSelectedGameRootPath());
     }
 
-    private static string GetSettingsPath()
+    private void SaveCustomGamePaths()
     {
-        var settingsDirectory = GetSettingsDirectory();
-        return Path.Combine(settingsDirectory, "config.json");
+        if (suppressSettingsSave)
+        {
+            return;
+        }
+
+        var customPaths = GamePathOptions
+            .Where(item => item.IsCustom)
+            .Select(item => new PersistedGamePath(item.DisplayName, item.Path));
+        SettingsPersistence.SaveCustomGamePaths(customPaths);
     }
 
-    private static string GetSettingsDirectory()
+    private void SaveCustomInputMethods()
     {
-        if (IsPackagedApp())
+        if (suppressSettingsSave)
         {
-            return ApplicationData.Current.LocalFolder.Path;
+            return;
         }
 
-        return Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "wows-ime");
-    }
-
-    private static bool IsPackagedApp()
-    {
-        try
-        {
-            _ = Windows.ApplicationModel.Package.Current;
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        var customInputMethods = InputMethods
+            .Where(item => item.IsCustom)
+            .Select(item => new PersistedInputMethod(item.DisplayName, item.Category.ToString()));
+        SettingsPersistence.SaveCustomInputMethods(customInputMethods);
     }
 
     private void ShowStatus(string message, InfoBarSeverity severity)
@@ -1091,30 +1036,364 @@ public sealed class GamePathOption : Microsoft.UI.Xaml.DependencyObject
 
 public sealed record ScannedImeCandidate(string DisplayName, ImeCategory Category, int Confidence);
 
-public sealed class AppSettings
-{
-    public string? SelectedGamePath { get; set; }
-    public string? GameDir { get; set; }
-    public List<SavedGamePath> GamePaths { get; set; } = new();
-    public List<SavedIme> Ime { get; set; } = new();
-}
+public sealed record PersistedGamePath(string DisplayName, string Path);
 
-public sealed class SavedGamePath
-{
-    public string? Name { get; set; }
-    public string? Path { get; set; }
-}
+public sealed record PersistedInputMethod(string DisplayName, string Category);
 
-public sealed class SavedIme
+internal static class SettingsPersistence
 {
-    public string? Name { get; set; }
-    public string Category { get; set; } = nameof(ImeCategory.ChineseSimplified);
-}
+    private const int CurrentSchemaVersion = 1;
+    private const string SchemaVersionKey = "Settings.SchemaVersion";
+    private const string SelectedGamePathKey = "Game.SelectedPath";
+    private const string LegacyConfigFileName = "config.json";
+    private const string MigratedLegacyConfigFileName = "config.json.migrated";
+    private const string DatabaseFileName = "settings.db";
 
-[JsonSourceGenerationOptions(WriteIndented = true)]
-[JsonSerializable(typeof(AppSettings))]
-internal partial class AppJsonContext : JsonSerializerContext
-{
+    public static void Initialize()
+    {
+        try
+        {
+            ApplicationData.Current.LocalSettings.Values[SchemaVersionKey] = CurrentSchemaVersion;
+            using var connection = OpenConnection();
+            ExecuteNonQuery(connection, """
+                CREATE TABLE IF NOT EXISTS custom_game_paths (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    display_name TEXT NOT NULL,
+                    path TEXT NOT NULL UNIQUE,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+                """);
+
+            ExecuteNonQuery(connection, """
+                CREATE TABLE IF NOT EXISTS custom_input_methods (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    display_name TEXT NOT NULL UNIQUE,
+                    category TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+                """);
+
+            MigrateLegacyConfigJsonIfNeeded(connection);
+        }
+        catch
+        {
+            // Keep the app usable even when the local database cannot be initialized.
+        }
+    }
+
+    public static string? LoadSelectedGamePath()
+    {
+        try
+        {
+            return ApplicationData.Current.LocalSettings.Values.TryGetValue(SelectedGamePathKey, out var value)
+                ? value as string
+                : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public static void SaveSelectedGamePath(string selectedGamePath)
+    {
+        try
+        {
+            ApplicationData.Current.LocalSettings.Values[SelectedGamePathKey] = selectedGamePath;
+        }
+        catch
+        {
+            // Keep failures silent to avoid breaking the main workflow.
+        }
+    }
+
+    public static List<PersistedGamePath> LoadCustomGamePaths()
+    {
+        var results = new List<PersistedGamePath>();
+        try
+        {
+            using var connection = OpenConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT display_name, path
+                FROM custom_game_paths
+                ORDER BY id;
+                """;
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                results.Add(new PersistedGamePath(reader.GetString(0), reader.GetString(1)));
+            }
+        }
+        catch
+        {
+            return results;
+        }
+
+        return results;
+    }
+
+    public static void SaveCustomGamePaths(IEnumerable<PersistedGamePath> customGamePaths)
+    {
+        try
+        {
+            using var connection = OpenConnection();
+            using var transaction = connection.BeginTransaction();
+            ExecuteNonQuery(connection, transaction, "DELETE FROM custom_game_paths;");
+
+            foreach (var path in customGamePaths)
+            {
+                using var command = connection.CreateCommand();
+                command.Transaction = transaction;
+                command.CommandText = """
+                    INSERT INTO custom_game_paths (display_name, path, updated_at)
+                    VALUES ($displayName, $path, CURRENT_TIMESTAMP);
+                    """;
+                command.Parameters.AddWithValue("$displayName", path.DisplayName);
+                command.Parameters.AddWithValue("$path", path.Path);
+                command.ExecuteNonQuery();
+            }
+
+            transaction.Commit();
+        }
+        catch
+        {
+            // Keep failures silent to avoid breaking the main workflow.
+        }
+    }
+
+    public static List<PersistedInputMethod> LoadCustomInputMethods()
+    {
+        var results = new List<PersistedInputMethod>();
+        try
+        {
+            using var connection = OpenConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT display_name, category
+                FROM custom_input_methods
+                ORDER BY id;
+                """;
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                results.Add(new PersistedInputMethod(reader.GetString(0), reader.GetString(1)));
+            }
+        }
+        catch
+        {
+            return results;
+        }
+
+        return results;
+    }
+
+    public static void SaveCustomInputMethods(IEnumerable<PersistedInputMethod> customInputMethods)
+    {
+        try
+        {
+            using var connection = OpenConnection();
+            using var transaction = connection.BeginTransaction();
+            ExecuteNonQuery(connection, transaction, "DELETE FROM custom_input_methods;");
+
+            foreach (var inputMethod in customInputMethods)
+            {
+                using var command = connection.CreateCommand();
+                command.Transaction = transaction;
+                command.CommandText = """
+                    INSERT INTO custom_input_methods (display_name, category, updated_at)
+                    VALUES ($displayName, $category, CURRENT_TIMESTAMP);
+                    """;
+                command.Parameters.AddWithValue("$displayName", inputMethod.DisplayName);
+                command.Parameters.AddWithValue("$category", inputMethod.Category);
+                command.ExecuteNonQuery();
+            }
+
+            transaction.Commit();
+        }
+        catch
+        {
+            // Keep failures silent to avoid breaking the main workflow.
+        }
+    }
+
+    private static void MigrateLegacyConfigJsonIfNeeded(SqliteConnection connection)
+    {
+        var values = ApplicationData.Current.LocalSettings.Values;
+        var legacyConfigPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, LegacyConfigFileName);
+        if (!File.Exists(legacyConfigPath))
+        {
+            return;
+        }
+
+        var json = File.ReadAllText(legacyConfigPath, Encoding.UTF8);
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+        if (root.ValueKind != JsonValueKind.Object)
+        {
+            return;
+        }
+
+        var selectedGamePath = ReadString(root, "SelectedGamePath");
+        if (string.IsNullOrWhiteSpace(selectedGamePath))
+        {
+            selectedGamePath = ReadString(root, "GameDir");
+        }
+
+        if (!string.IsNullOrWhiteSpace(selectedGamePath))
+        {
+            values[SelectedGamePathKey] = selectedGamePath;
+        }
+
+        UpsertLegacyGamePaths(connection, root);
+        UpsertLegacyInputMethods(connection, root);
+        RenameMigratedLegacyConfig(legacyConfigPath);
+    }
+
+    private static void UpsertLegacyGamePaths(SqliteConnection connection, JsonElement root)
+    {
+        if (!root.TryGetProperty("GamePaths", out var gamePaths) || gamePaths.ValueKind != JsonValueKind.Array)
+        {
+            return;
+        }
+
+        using var transaction = connection.BeginTransaction();
+        foreach (var gamePath in gamePaths.EnumerateArray())
+        {
+            if (gamePath.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            var path = ReadString(gamePath, "Path")?.Trim();
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                continue;
+            }
+
+            var displayName = ReadString(gamePath, "Name");
+            if (string.IsNullOrWhiteSpace(displayName))
+            {
+                displayName = Path.GetFileName(path);
+            }
+
+            if (string.IsNullOrWhiteSpace(displayName))
+            {
+                displayName = path;
+            }
+
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                INSERT INTO custom_game_paths (display_name, path, updated_at)
+                VALUES ($displayName, $path, CURRENT_TIMESTAMP)
+                ON CONFLICT(path) DO UPDATE SET
+                    display_name = excluded.display_name,
+                    updated_at = CURRENT_TIMESTAMP;
+                """;
+            command.Parameters.AddWithValue("$displayName", displayName);
+            command.Parameters.AddWithValue("$path", path);
+            command.ExecuteNonQuery();
+        }
+
+        transaction.Commit();
+    }
+
+    private static void UpsertLegacyInputMethods(SqliteConnection connection, JsonElement root)
+    {
+        if (!root.TryGetProperty("Ime", out var inputMethods) || inputMethods.ValueKind != JsonValueKind.Array)
+        {
+            return;
+        }
+
+        using var transaction = connection.BeginTransaction();
+        foreach (var inputMethod in inputMethods.EnumerateArray())
+        {
+            if (inputMethod.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            var displayName = ReadString(inputMethod, "Name")?.Trim();
+            if (string.IsNullOrWhiteSpace(displayName))
+            {
+                continue;
+            }
+
+            var category = NormalizeLegacyCategory(ReadString(inputMethod, "Category"));
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                INSERT INTO custom_input_methods (display_name, category, updated_at)
+                VALUES ($displayName, $category, CURRENT_TIMESTAMP)
+                ON CONFLICT(display_name) DO UPDATE SET
+                    category = excluded.category,
+                    updated_at = CURRENT_TIMESTAMP;
+                """;
+            command.Parameters.AddWithValue("$displayName", displayName);
+            command.Parameters.AddWithValue("$category", category);
+            command.ExecuteNonQuery();
+        }
+
+        transaction.Commit();
+    }
+
+    private static string NormalizeLegacyCategory(string? category) => category switch
+    {
+        "ChineseTraditional" => nameof(ImeCategory.ChineseTraditional),
+        "Japanese" => nameof(ImeCategory.Japanese),
+        _ => nameof(ImeCategory.ChineseSimplified)
+    };
+
+    private static string? ReadString(JsonElement element, string propertyName)
+    {
+        return element.TryGetProperty(propertyName, out var property) && property.ValueKind == JsonValueKind.String
+            ? property.GetString()
+            : null;
+    }
+
+    private static void RenameMigratedLegacyConfig(string legacyConfigPath)
+    {
+        var migratedConfigPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, MigratedLegacyConfigFileName);
+        if (File.Exists(migratedConfigPath))
+        {
+            File.Delete(migratedConfigPath);
+        }
+
+        File.Move(legacyConfigPath, migratedConfigPath);
+    }
+
+    private static SqliteConnection OpenConnection()
+    {
+        var databasePath = Path.Combine(ApplicationData.Current.LocalFolder.Path, DatabaseFileName);
+        var connectionString = new SqliteConnectionStringBuilder
+        {
+            DataSource = databasePath
+        }.ToString();
+
+        var connection = new SqliteConnection(connectionString);
+        connection.Open();
+        return connection;
+    }
+
+    private static void ExecuteNonQuery(SqliteConnection connection, SqliteTransaction transaction, string commandText)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = commandText;
+        command.ExecuteNonQuery();
+    }
+
+    private static void ExecuteNonQuery(SqliteConnection connection, string commandText)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = commandText;
+        command.ExecuteNonQuery();
+    }
 }
 
 [StructLayout(LayoutKind.Sequential)]

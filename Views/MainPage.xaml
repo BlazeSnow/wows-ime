@@ -180,7 +180,7 @@
                                                 VerticalAlignment="Center"
                                                 IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
                                             <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind DisplayName}" />
-                                            <ComboBox Grid.Column="2" SelectedIndex="{x:Bind CategoryIndex, Mode=TwoWay}">
+                                            <ComboBox Grid.Column="2" SelectedIndex="{x:Bind CategoryIndex, Mode=TwoWay}" SelectionChanged="ImeCategoryComboBox_SelectionChanged" Tag="{x:Bind}">
                                                 <ComboBoxItem x:Uid="ImeCategorySimplifiedItem" />
                                                 <ComboBoxItem x:Uid="ImeCategoryTraditionalItem" />
                                                 <ComboBoxItem x:Uid="ImeCategoryJapaneseItem" />
