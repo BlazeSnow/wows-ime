@@ -248,7 +248,7 @@
         </Grid>
         </ScrollViewer>
 
-            <InfoBar Grid.Row="1" x:Name="StatusInfoBar" IsOpen="False" IsClosable="True" />
+            <InfoBar Grid.Row="1" x:Name="StatusInfoBar" IsOpen="False" IsClosable="True" Margin="20,0,20,8" />
         </Grid>
     </Page.Content>
 </Page>
