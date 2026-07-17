@@ -9,39 +9,6 @@
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d">
 
-    <Page.Resources>
-        <ContentDialog
-            x:Name="AddCustomImeDialog"
-            DefaultButton="Primary">
-            <StackPanel Spacing="8">
-                <TextBlock x:Name="CustomImeNameLabel" />
-                <TextBox x:Name="CustomImeNameBox" />
-                <TextBlock x:Name="CustomImeCategoryLabel" />
-                <ComboBox x:Name="CustomImeCategoryCombo" SelectedIndex="0">
-                    <ComboBoxItem x:Name="CategorySimplifiedItem" />
-                    <ComboBoxItem x:Name="CategoryTraditionalItem" />
-                    <ComboBoxItem x:Name="CategoryJapaneseItem" />
-                </ComboBox>
-            </StackPanel>
-        </ContentDialog>
-
-        <ContentDialog
-            x:Name="DeleteCustomImeDialog"
-            DefaultButton="Close" />
-
-        <ContentDialog
-            x:Name="DeleteCustomGamePathDialog"
-            DefaultButton="Close" />
-
-        <ContentDialog
-            x:Name="OverwriteDialog"
-            DefaultButton="Close" />
-
-        <ContentDialog
-            x:Name="AddConfigDialog"
-            DefaultButton="Primary" />
-    </Page.Resources>
-
     <Page.Content>
         <Grid Background="Transparent">
             <Grid.RowDefinitions>

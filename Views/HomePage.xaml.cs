@@ -40,40 +40,48 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
         suppressSettingsSave = true;
         SettingsPersistence.Initialize();
         InitializeComponent();
-        InitializeDialogs();
         LoadGamePathOptions();
         LoadInputMethods();
         LoadSavedCustomIme();
         suppressSettingsSave = false;
     }
 
-    private void InitializeDialogs()
+    private ContentDialog CreateAddCustomImeDialog()
     {
-        AddCustomImeDialog.Title = SR("Dialog/AddCustomIme/Title");
-        AddCustomImeDialog.PrimaryButtonText = SR("Dialog/AddCustomIme/PrimaryButton");
-        AddCustomImeDialog.CloseButtonText = SR("Dialog/Common/Cancel");
-        CustomImeNameLabel.Text = SR("Dialog/AddCustomIme/NameLabel");
-        CustomImeNameBox.PlaceholderText = SR("Dialog/AddCustomIme/Placeholder");
-        CustomImeCategoryLabel.Text = SR("Dialog/AddCustomIme/CategoryLabel");
-        CategorySimplifiedItem.Content = SR("Category/ChineseSimplified");
-        CategoryTraditionalItem.Content = SR("Category/ChineseTraditional");
-        CategoryJapaneseItem.Content = SR("Category/Japanese");
+        var nameBox = new TextBox { PlaceholderText = SR("Dialog/AddCustomIme/Placeholder") };
+        var categoryCombo = new ComboBox { SelectedIndex = 0 };
+        categoryCombo.Items.Add(new ComboBoxItem { Content = SR("Category/ChineseSimplified") });
+        categoryCombo.Items.Add(new ComboBoxItem { Content = SR("Category/ChineseTraditional") });
+        categoryCombo.Items.Add(new ComboBoxItem { Content = SR("Category/Japanese") });
 
-        DeleteCustomImeDialog.Title = SR("Dialog/DeleteCustomIme/Title");
-        DeleteCustomImeDialog.PrimaryButtonText = SR("Dialog/DeleteCustomIme/PrimaryButton");
-        DeleteCustomImeDialog.CloseButtonText = SR("Dialog/Common/Cancel");
+        var panel = new StackPanel { Spacing = 8 };
+        panel.Children.Add(new TextBlock { Text = SR("Dialog/AddCustomIme/NameLabel") });
+        panel.Children.Add(nameBox);
+        panel.Children.Add(new TextBlock { Text = SR("Dialog/AddCustomIme/CategoryLabel") });
+        panel.Children.Add(categoryCombo);
 
-        DeleteCustomGamePathDialog.Title = SR("Dialog/DeleteCustomGamePath/Title");
-        DeleteCustomGamePathDialog.PrimaryButtonText = SR("Dialog/DeleteCustomGamePath/PrimaryButton");
-        DeleteCustomGamePathDialog.CloseButtonText = SR("Dialog/Common/Cancel");
+        return new ContentDialog
+        {
+            Title = SR("Dialog/AddCustomIme/Title"),
+            Content = panel,
+            PrimaryButtonText = SR("Dialog/AddCustomIme/PrimaryButton"),
+            CloseButtonText = SR("Dialog/Common/Cancel"),
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot
+        };
+    }
 
-        OverwriteDialog.Title = SR("Dialog/Overwrite/Title");
-        OverwriteDialog.PrimaryButtonText = SR("Dialog/Overwrite/PrimaryButton");
-        OverwriteDialog.CloseButtonText = SR("Dialog/Common/Cancel");
-
-        AddConfigDialog.Title = SR("Dialog/AddConfig/Title");
-        AddConfigDialog.PrimaryButtonText = SR("Dialog/AddConfig/PrimaryButton");
-        AddConfigDialog.CloseButtonText = SR("Dialog/Common/Cancel");
+    private ContentDialog CreateConfirmDialog(string titleKey, string content, string primaryKey, bool primaryIsDefault = false)
+    {
+        return new ContentDialog
+        {
+            Title = SR(titleKey),
+            Content = content,
+            PrimaryButtonText = SR(primaryKey),
+            CloseButtonText = SR("Dialog/Common/Cancel"),
+            DefaultButton = primaryIsDefault ? ContentDialogButton.Primary : ContentDialogButton.Close,
+            XamlRoot = XamlRoot
+        };
     }
 
     private async void AddCustomGamePathButton_Click(object sender, RoutedEventArgs e)
@@ -149,10 +157,12 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
             return;
         }
 
-        DeleteCustomGamePathDialog.XamlRoot = XamlRoot;
-        DeleteCustomGamePathDialog.Content = SRF("Dialog/DeleteCustomGamePath/Content", option.DisplayName, option.Path);
+        var dialog = CreateConfirmDialog(
+            "Dialog/DeleteCustomGamePath/Title",
+            SRF("Dialog/DeleteCustomGamePath/Content", option.DisplayName, option.Path),
+            "Dialog/DeleteCustomGamePath/PrimaryButton");
 
-        if (await DeleteCustomGamePathDialog.ShowAsync() != ContentDialogResult.Primary)
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {
             return;
         }
@@ -197,16 +207,18 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
 
     private async void AddCustomImeButton_Click(object sender, RoutedEventArgs e)
     {
-        CustomImeNameBox.Text = string.Empty;
-        CustomImeCategoryCombo.SelectedIndex = 0;
-        AddCustomImeDialog.XamlRoot = XamlRoot;
+        var dialog = CreateAddCustomImeDialog();
+        var result = await dialog.ShowAsync();
 
-        if (await AddCustomImeDialog.ShowAsync() != ContentDialogResult.Primary)
+        if (result != ContentDialogResult.Primary)
         {
             return;
         }
 
-        var name = CustomImeNameBox.Text?.Trim() ?? string.Empty;
+        var panel = (StackPanel)dialog.Content;
+        var nameBox = (TextBox)panel.Children[1];
+        var categoryCombo = (ComboBox)panel.Children[3];
+        var name = nameBox.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(name))
         {
             ShowStatus(SR("Status/ImeNameEmpty"), InfoBarSeverity.Warning);
@@ -222,7 +234,7 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
         var newItem = new InputMethodItem(name, isCustom: true)
         {
             IsSelected = true,
-            CategoryIndex = CustomImeCategoryCombo.SelectedIndex < 0 ? 0 : CustomImeCategoryCombo.SelectedIndex
+            CategoryIndex = categoryCombo.SelectedIndex < 0 ? 0 : categoryCombo.SelectedIndex
         };
 
         InputMethods.Add(newItem);
@@ -242,10 +254,12 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
             return;
         }
 
-        DeleteCustomImeDialog.XamlRoot = XamlRoot;
-        DeleteCustomImeDialog.Content = SRF("Dialog/DeleteCustomIme/Content", item.DisplayName);
+        var dialog = CreateConfirmDialog(
+            "Dialog/DeleteCustomIme/Title",
+            SRF("Dialog/DeleteCustomIme/Content", item.DisplayName),
+            "Dialog/DeleteCustomIme/PrimaryButton");
 
-        if (await DeleteCustomImeDialog.ShowAsync() != ContentDialogResult.Primary)
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
         {
             return;
         }
@@ -297,10 +311,12 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
         var existing = targetFiles.Where(File.Exists).ToList();
         if (existing.Count > 0)
         {
-            OverwriteDialog.XamlRoot = XamlRoot;
-            OverwriteDialog.Content = SRF("Dialog/Overwrite/Content", existing.Count);
+            var dialog = CreateConfirmDialog(
+                "Dialog/Overwrite/Title",
+                SRF("Dialog/Overwrite/Content", existing.Count),
+                "Dialog/Overwrite/PrimaryButton");
 
-            if (await OverwriteDialog.ShowAsync() != ContentDialogResult.Primary)
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
             {
                 ShowStatus(SR("Status/WriteCanceled"), InfoBarSeverity.Informational);
                 return;
@@ -308,10 +324,13 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
         }
         else
         {
-            AddConfigDialog.XamlRoot = XamlRoot;
-            AddConfigDialog.Content = SRF("Dialog/AddConfig/Content", targetFiles.Count);
+            var dialog = CreateConfirmDialog(
+                "Dialog/AddConfig/Title",
+                SRF("Dialog/AddConfig/Content", targetFiles.Count),
+                "Dialog/AddConfig/PrimaryButton",
+                primaryIsDefault: true);
 
-            if (await AddConfigDialog.ShowAsync() != ContentDialogResult.Primary)
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
             {
                 ShowStatus(SR("Status/WriteCanceled"), InfoBarSeverity.Informational);
                 return;

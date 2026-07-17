@@ -8,11 +8,6 @@
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d">
 
-    <Page.Resources>
-        <ContentDialog
-            x:Name="ErrorDialog" />
-    </Page.Resources>
-
     <Page.Content>
         <ScrollViewer
             VerticalScrollMode="Enabled"

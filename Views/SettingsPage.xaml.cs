@@ -12,7 +12,6 @@ public sealed partial class SettingsPage : Page
     public SettingsPage()
     {
         InitializeComponent();
-        ErrorDialog.CloseButtonText = "OK";
     }
 
     private async void OpenProjectWebsiteButton_Click(object sender, RoutedEventArgs e)
@@ -35,9 +34,13 @@ public sealed partial class SettingsPage : Page
 
     private async Task ShowErrorAsync(string message)
     {
-        ErrorDialog.XamlRoot = XamlRoot;
-        ErrorDialog.Title = message;
-        await ErrorDialog.ShowAsync();
+        var dialog = new ContentDialog
+        {
+            Title = message,
+            CloseButtonText = "OK",
+            XamlRoot = XamlRoot
+        };
+        await dialog.ShowAsync();
     }
 
     private static string SR(string key)
