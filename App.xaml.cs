@@ -46,19 +46,44 @@ namespace wows_ime
             window.SystemBackdrop = new MicaBackdrop();
             SetWindowIcon(window);
 
-            var rootFrame = CreateWindowContent(window);
+            CreateWindowContent(window);
             ApplySystemTitleBarTheme(window);
             EnsureThemeListener();
 
-            _ = rootFrame.Navigate(typeof(MainPage), e.Arguments);
             window.Activate();
         }
 
-        private Frame CreateWindowContent(Window targetWindow)
+        private void CreateWindowContent(Window targetWindow)
         {
             var titleBar = CreateTitleBar();
-            var rootFrame = new Frame();
-            rootFrame.NavigationFailed += OnNavigationFailed;
+
+            var contentFrame = new Frame();
+            contentFrame.NavigationFailed += OnNavigationFailed;
+
+            var navigationView = new NavigationView
+            {
+                IsBackButtonVisible = NavigationViewBackButtonVisible.Collapsed,
+                IsSettingsVisible = false,
+                PaneDisplayMode = NavigationViewPaneDisplayMode.Left,
+                IsTitleBarAutoPaddingEnabled = false,
+                Content = contentFrame
+            };
+
+            navigationView.MenuItems.Add(CreateNavItem("Nav/Home", "\uE80F", "home"));
+            navigationView.MenuItems.Add(CreateNavItem("Nav/Settings", "\uE713", "settings"));
+
+            navigationView.SelectionChanged += (sender, args) =>
+            {
+                if (args.SelectedItem is NavigationViewItem { Tag: string tag })
+                {
+                    var pageType = tag switch
+                    {
+                        "settings" => typeof(SettingsPage),
+                        _ => typeof(HomePage)
+                    };
+                    _ = contentFrame.Navigate(pageType);
+                }
+            };
 
             var rootGrid = new Grid
             {
@@ -68,14 +93,27 @@ namespace wows_ime
             rootGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
             Grid.SetRow(titleBar, 0);
-            Grid.SetRow(rootFrame, 1);
+            Grid.SetRow(navigationView, 1);
             rootGrid.Children.Add(titleBar);
-            rootGrid.Children.Add(rootFrame);
+            rootGrid.Children.Add(navigationView);
 
             targetWindow.ExtendsContentIntoTitleBar = true;
             targetWindow.Content = rootGrid;
             targetWindow.SetTitleBar(titleBar);
-            return rootFrame;
+
+            // Default to home page
+            _ = contentFrame.Navigate(typeof(HomePage));
+            navigationView.SelectedItem = navigationView.MenuItems[0];
+        }
+
+        private static NavigationViewItem CreateNavItem(string resourceKey, string glyph, string tag)
+        {
+            return new NavigationViewItem
+            {
+                Content = SR(resourceKey),
+                Icon = new FontIcon { Glyph = glyph },
+                Tag = tag
+            };
         }
 
         private static TitleBar CreateTitleBar()
@@ -285,4 +323,3 @@ namespace wows_ime
         }
     }
 }
-

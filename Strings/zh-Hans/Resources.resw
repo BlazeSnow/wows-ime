@@ -358,4 +358,10 @@
   <data name="Ime/Weixin" xml:space="preserve">
     <value>微信输入法</value>
   </data>
+  <data name="Nav/Home" xml:space="preserve">
+    <value>主页</value>
+  </data>
+  <data name="Nav/Settings" xml:space="preserve">
+    <value>设置</value>
+  </data>
 </root>

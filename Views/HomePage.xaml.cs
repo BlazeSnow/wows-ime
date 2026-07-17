@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -8,13 +8,11 @@ using wows_ime.Services;
 
 namespace wows_ime.Views;
 
-public sealed partial class MainPage : Page, INotifyPropertyChanged
+public sealed partial class HomePage : Page, INotifyPropertyChanged
 {
     private const string SteamDefaultPath = @"C:\Program Files (x86)\Steam\steamapps\common\World of Warships";
     private const string LestaDefaultPath = @"C:\Games\Korabli";
     private const string Cn360DefaultPath = @"C:\Games\World_of_Warships_CN360";
-    private static readonly Uri ProjectWebsiteUri = new("https://www.blazesnow.com/wows/");
-    private static readonly Uri ProjectRepositoryUri = new("https://github.com/BlazeSnow/wows-ime");
     private string? lastScanWarning;
     private bool suppressSettingsSave;
     private string currentSelectedGamePathText = string.Empty;
@@ -22,7 +20,6 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
 
     public ObservableCollection<InputMethodItem> InputMethods { get; } = new();
     public ObservableCollection<GamePathOption> GamePathOptions { get; } = new();
-    public string AppVersionText { get; } = GetPackageVersionText();
     public string CurrentSelectedGamePathText
     {
         get => currentSelectedGamePathText;
@@ -38,7 +35,7 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
         }
     }
 
-    public MainPage()
+    public HomePage()
     {
         suppressSettingsSave = true;
         SettingsPersistence.Initialize();
@@ -320,24 +317,6 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
         }
     }
 
-    private async void OpenProjectWebsiteButton_Click(object sender, RoutedEventArgs e)
-    {
-        var launched = await Windows.System.Launcher.LaunchUriAsync(ProjectWebsiteUri);
-        if (!launched)
-        {
-            ShowStatus(SR("Status/OpenProjectWebsiteFailed"), InfoBarSeverity.Error);
-        }
-    }
-
-    private async void OpenProjectRepositoryButton_Click(object sender, RoutedEventArgs e)
-    {
-        var launched = await Windows.System.Launcher.LaunchUriAsync(ProjectRepositoryUri);
-        if (!launched)
-        {
-            ShowStatus(SR("Status/OpenProjectRepositoryFailed"), InfoBarSeverity.Error);
-        }
-    }
-
     private void LoadInputMethods()
     {
         InputMethods.Clear();
@@ -554,19 +533,4 @@ public sealed partial class MainPage : Page, INotifyPropertyChanged
     {
         return AppResources.Format(key, args);
     }
-
-    private static string GetPackageVersionText()
-    {
-        try
-        {
-            var version = Windows.ApplicationModel.Package.Current.Id.Version;
-            return $"{version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
-        }
-        catch
-        {
-            return string.Empty;
-        }
-    }
 }
-
-
