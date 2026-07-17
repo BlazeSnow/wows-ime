@@ -80,7 +80,7 @@ public sealed partial class SettingsPage : Page
         }
 
         Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = tag;
-        Microsoft.Windows.AppLifecycle.AppInstance.Restart("");
+        RestartApp();
     }
 
     private async Task<bool> ShowLanguageRestartDialogAsync(string languageTag)
@@ -141,6 +141,17 @@ public sealed partial class SettingsPage : Page
     private static string SR(string key)
     {
         return AppResources.Get(key);
+    }
+
+    private static void RestartApp()
+    {
+        var exePath = Environment.ProcessPath;
+        if (!string.IsNullOrEmpty(exePath))
+        {
+            _ = System.Diagnostics.Process.Start(exePath);
+        }
+
+        Application.Current.Exit();
     }
 
     private static string GetPackageVersionText()
