@@ -364,4 +364,19 @@
   <data name="Nav/Settings" xml:space="preserve">
     <value>设置</value>
   </data>
+  <data name="Settings/LanguageLabel" xml:space="preserve">
+    <value>语言</value>
+  </data>
+  <data name="Settings/Restart/Title" xml:space="preserve">
+    <value>重启应用</value>
+  </data>
+  <data name="Settings/Restart/Content" xml:space="preserve">
+    <value>语言更改将在重启后生效，是否立即重启？</value>
+  </data>
+  <data name="Settings/Restart/Primary" xml:space="preserve">
+    <value>立即重启</value>
+  </data>
+  <data name="Settings/Restart/Close" xml:space="preserve">
+    <value>稍后</value>
+  </data>
 </root>

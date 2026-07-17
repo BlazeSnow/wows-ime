@@ -364,4 +364,19 @@
   <data name="Nav/Settings" xml:space="preserve">
     <value>設定</value>
   </data>
+  <data name="Settings/LanguageLabel" xml:space="preserve">
+    <value>言語</value>
+  </data>
+  <data name="Settings/Restart/Title" xml:space="preserve">
+    <value>アプリの再起動</value>
+  </data>
+  <data name="Settings/Restart/Content" xml:space="preserve">
+    <value>言語の変更は再起動後に反映されます。今すぐ再起動しますか？</value>
+  </data>
+  <data name="Settings/Restart/Primary" xml:space="preserve">
+    <value>今すぐ再起動</value>
+  </data>
+  <data name="Settings/Restart/Close" xml:space="preserve">
+    <value>後で</value>
+  </data>
 </root>

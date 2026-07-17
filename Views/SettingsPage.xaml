@@ -19,10 +19,24 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
+            <toolkit:SettingsCard Grid.Row="0">
+                <toolkit:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE8B1;" />
+                </toolkit:SettingsCard.HeaderIcon>
+                <toolkit:SettingsCard.Header>
+                    <TextBlock x:Name="LanguageLabel" />
+                </toolkit:SettingsCard.Header>
+                <ComboBox
+                    x:Name="LanguageComboBox"
+                    Width="160"
+                    SelectionChanged="LanguageComboBox_SelectionChanged" />
+            </toolkit:SettingsCard>
+
             <toolkit:SettingsCard
-                Grid.Row="0"
+                Grid.Row="1"
                 x:Uid="ProjectWebsiteCard">
                 <toolkit:SettingsCard.HeaderIcon>
                     <FontIcon Glyph="&#xE774;" />
@@ -34,7 +48,7 @@
             </toolkit:SettingsCard>
 
             <toolkit:SettingsCard
-                Grid.Row="1"
+                Grid.Row="2"
                 x:Uid="ProjectRepositoryCard">
                 <toolkit:SettingsCard.HeaderIcon>
                     <FontIcon Glyph="&#xE943;" />
@@ -45,7 +59,7 @@
                 <Button x:Uid="OpenProjectRepositoryButton" Click="OpenProjectRepositoryButton_Click" />
             </toolkit:SettingsCard>
 
-            <toolkit:SettingsCard Grid.Row="2">
+            <toolkit:SettingsCard Grid.Row="3">
                 <toolkit:SettingsCard.HeaderIcon>
                     <FontIcon Glyph="&#xE946;" />
                 </toolkit:SettingsCard.HeaderIcon>
