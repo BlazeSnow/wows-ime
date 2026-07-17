@@ -19,11 +19,14 @@ public sealed partial class Shell : UserControl
 
     private void AppTitleBar_Loaded(object sender, RoutedEventArgs e)
     {
-        var paneButton = FindVisualChild<Button>(AppTitleBar, "PaneToggleButton");
-        if (paneButton is not null)
+        DispatcherQueue.TryEnqueue(() =>
         {
-            paneButton.Click += (_, _) => AppNavView.IsPaneOpen = !AppNavView.IsPaneOpen;
-        }
+            var paneButton = FindPaneToggleButton(AppTitleBar);
+            if (paneButton is not null)
+            {
+                paneButton.Click += (_, _) => AppNavView.IsPaneOpen = !AppNavView.IsPaneOpen;
+            }
+        });
     }
 
     private void AppNavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -44,18 +47,18 @@ public sealed partial class Shell : UserControl
         throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
     }
 
-    private static T? FindVisualChild<T>(DependencyObject parent, string name) where T : FrameworkElement
+    private static Button? FindPaneToggleButton(DependencyObject parent)
     {
         var count = VisualTreeHelper.GetChildrenCount(parent);
         for (var i = 0; i < count; i++)
         {
             var child = VisualTreeHelper.GetChild(parent, i);
-            if (child is T element && element.Name == name)
+            if (child is Button button)
             {
-                return element;
+                return button;
             }
 
-            var descendant = FindVisualChild<T>(child, name);
+            var descendant = FindPaneToggleButton(child);
             if (descendant is not null)
             {
                 return descendant;
