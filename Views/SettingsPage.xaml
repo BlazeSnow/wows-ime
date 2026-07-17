@@ -22,50 +22,43 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <toolkit:SettingsCard Grid.Row="0">
+            <toolkit:SettingsCard x:Name="LanguageCard" Grid.Row="0">
                 <toolkit:SettingsCard.HeaderIcon>
                     <FontIcon Glyph="&#xE8B1;" />
                 </toolkit:SettingsCard.HeaderIcon>
-                <toolkit:SettingsCard.Header>
-                    <TextBlock x:Name="LanguageLabel" />
-                </toolkit:SettingsCard.Header>
                 <ComboBox
                     x:Name="LanguageComboBox"
                     Width="160"
-                    SelectionChanged="LanguageComboBox_SelectionChanged" />
+                    SelectionChanged="OnLanguageSelectionChanged">
+                    <ComboBoxItem x:Name="AutomaticLanguageItem" Tag="auto" />
+                    <ComboBoxItem Content="简体中文" Tag="zh-Hans" />
+                    <ComboBoxItem Content="繁體中文" Tag="zh-Hant" />
+                    <ComboBoxItem Content="日本語" Tag="ja" />
+                </ComboBox>
             </toolkit:SettingsCard>
 
             <toolkit:SettingsCard
-                Grid.Row="1"
-                x:Uid="ProjectWebsiteCard">
+                x:Name="ProjectWebsiteCard"
+                Grid.Row="1">
                 <toolkit:SettingsCard.HeaderIcon>
                     <FontIcon Glyph="&#xE774;" />
                 </toolkit:SettingsCard.HeaderIcon>
-                <toolkit:SettingsCard.Header>
-                    <TextBlock x:Uid="ProjectWebsiteCardHeader" />
-                </toolkit:SettingsCard.Header>
-                <Button x:Uid="OpenProjectWebsiteButton" Click="OpenProjectWebsiteButton_Click" />
+                <Button x:Name="OpenProjectWebsiteButton" Click="OpenProjectWebsiteButton_Click" />
             </toolkit:SettingsCard>
 
             <toolkit:SettingsCard
-                Grid.Row="2"
-                x:Uid="ProjectRepositoryCard">
+                x:Name="ProjectRepositoryCard"
+                Grid.Row="2">
                 <toolkit:SettingsCard.HeaderIcon>
                     <FontIcon Glyph="&#xE943;" />
                 </toolkit:SettingsCard.HeaderIcon>
-                <toolkit:SettingsCard.Header>
-                    <TextBlock x:Uid="ProjectRepositoryCardHeader" />
-                </toolkit:SettingsCard.Header>
-                <Button x:Uid="OpenProjectRepositoryButton" Click="OpenProjectRepositoryButton_Click" />
+                <Button x:Name="OpenProjectRepositoryButton" Click="OpenProjectRepositoryButton_Click" />
             </toolkit:SettingsCard>
 
-            <toolkit:SettingsCard Grid.Row="3">
+            <toolkit:SettingsCard x:Name="VersionCard" Grid.Row="3">
                 <toolkit:SettingsCard.HeaderIcon>
                     <FontIcon Glyph="&#xE946;" />
                 </toolkit:SettingsCard.HeaderIcon>
-                <toolkit:SettingsCard.Header>
-                    <TextBlock x:Uid="AppVersionCardHeader" />
-                </toolkit:SettingsCard.Header>
                 <TextBlock Text="{x:Bind AppVersionText}" />
             </toolkit:SettingsCard>
         </Grid>

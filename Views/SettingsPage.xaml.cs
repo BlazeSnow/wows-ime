@@ -1,4 +1,3 @@
-using Windows.ApplicationModel.Resources.Core;
 using wows_ime.Services;
 
 namespace wows_ime.Views;
@@ -8,85 +7,93 @@ public sealed partial class SettingsPage : Page
     private static readonly Uri ProjectWebsiteUri = new("https://www.blazesnow.com/wows/");
     private static readonly Uri ProjectRepositoryUri = new("https://github.com/BlazeSnow/wows-ime");
 
-    private static readonly List<(string Tag, string DisplayName)> LanguageOptions = new()
+    private static readonly Dictionary<string, (string Title, string Content, string Primary, string Close)> RestartStrings = new()
     {
-        ("", "自动"),
-        ("zh-Hans", "简体中文"),
-        ("zh-Hant", "繁體中文"),
-        ("ja", "日本語")
+        ["zh-Hans"] = ("重启应用", "语言更改将在重启后生效，是否立即重启？", "立即重启", "稍后"),
+        ["zh-Hant"] = ("重啟應用", "語言更改將在重啟後生效，是否立即重啟？", "立即重啟", "稍後"),
+        ["ja"]      = ("アプリの再起動", "言語の変更は再起動後に反映されます。今すぐ再起動しますか？", "今すぐ再起動", "後で"),
     };
 
     private bool suppressSelectionChange;
-    private string currentLanguageTag = "";
 
     public string AppVersionText { get; } = GetPackageVersionText();
 
     public SettingsPage()
     {
         InitializeComponent();
-        LanguageLabel.Text = SR("Settings/LanguageLabel");
-        InitializeLanguageCombo();
+        ApplyLocalization();
+        SelectLanguage(GetSavedLanguage());
     }
 
-    private void InitializeLanguageCombo()
+    private void ApplyLocalization()
     {
-        var currentOverride = Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride;
-        currentLanguageTag = string.IsNullOrEmpty(currentOverride) ? "" : currentOverride;
+        LanguageCard.Header = SR("Settings/LanguageLabel");
+        AutomaticLanguageItem.Content = "自动";
 
+        ProjectWebsiteCard.Header = SR("ProjectWebsiteCardHeader");
+        ProjectWebsiteCard.Description = "https://www.blazesnow.com/wows/";
+        OpenProjectWebsiteButton.Content = SR("OpenProjectWebsiteButton");
+
+        ProjectRepositoryCard.Header = SR("ProjectRepositoryCardHeader");
+        ProjectRepositoryCard.Description = "https://github.com/BlazeSnow/wows-ime";
+        OpenProjectRepositoryButton.Content = SR("OpenProjectRepositoryButton");
+
+        VersionCard.Header = SR("AppVersionCardHeader");
+    }
+
+    private void SelectLanguage(string? language)
+    {
         suppressSelectionChange = true;
-        foreach (var (tag, displayName) in LanguageOptions)
+        LanguageComboBox.SelectedIndex = language switch
         {
-            var item = new ComboBoxItem { Content = displayName, Tag = tag };
-            LanguageComboBox.Items.Add(item);
-
-            if (tag == currentLanguageTag)
-            {
-                LanguageComboBox.SelectedItem = item;
-            }
-        }
+            "zh-Hans" => 1,
+            "zh-Hant" => 2,
+            "ja" => 3,
+            _ => 0
+        };
         suppressSelectionChange = false;
     }
 
-    private async void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private static string? GetSavedLanguage()
+    {
+        return Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride?.Trim() is { Length: > 0 } lang ? lang : null;
+    }
+
+    private async void OnLanguageSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (suppressSelectionChange || LanguageComboBox.SelectedItem is not ComboBoxItem { Tag: string tag })
         {
             return;
         }
 
-        if (tag == currentLanguageTag)
+        var current = GetSavedLanguage() ?? "";
+        if (tag == current)
         {
             return;
         }
 
-        var restart = await ShowRestartDialogAsync(tag);
+        var restart = await ShowLanguageRestartDialogAsync(tag);
         if (!restart)
         {
-            // Reset to previous selection
-            suppressSelectionChange = true;
-            foreach (ComboBoxItem item in LanguageComboBox.Items)
-            {
-                if (item.Tag is string itemTag && itemTag == currentLanguageTag)
-                {
-                    LanguageComboBox.SelectedItem = item;
-                    break;
-                }
-            }
-            suppressSelectionChange = false;
+            SelectLanguage(current.Length > 0 ? current : null);
             return;
         }
 
-        // Apply language override and restart
         Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = tag;
         Microsoft.Windows.AppLifecycle.AppInstance.Restart("");
     }
 
-    private async Task<bool> ShowRestartDialogAsync(string targetLanguageTag)
+    private async Task<bool> ShowLanguageRestartDialogAsync(string languageTag)
     {
-        var title = GetStringForLanguage("Settings/Restart/Title", targetLanguageTag);
-        var content = GetStringForLanguage("Settings/Restart/Content", targetLanguageTag);
-        var primary = GetStringForLanguage("Settings/Restart/Primary", targetLanguageTag);
-        var close = GetStringForLanguage("Settings/Restart/Close", targetLanguageTag);
+        var title = "重启应用";
+        var content = "语言更改将在重启后生效，是否立即重启？";
+        var primary = "立即重启";
+        var close = "稍后";
+
+        if (RestartStrings.TryGetValue(languageTag, out var strings))
+        {
+            (title, content, primary, close) = strings;
+        }
 
         var dialog = new ContentDialog
         {
@@ -100,28 +107,6 @@ public sealed partial class SettingsPage : Page
 
         var result = await dialog.ShowAsync();
         return result == ContentDialogResult.Primary;
-    }
-
-    private static string GetStringForLanguage(string key, string languageTag)
-    {
-        try
-        {
-            var resourceManager = ResourceManager.Current;
-            var resourceMap = resourceManager.MainResourceMap.GetSubtree("Resources");
-            var context = new ResourceContext();
-            context.QualifierValues["Language"] = languageTag;
-            var candidate = resourceMap.GetValue(key, context);
-            if (candidate is not null)
-            {
-                return candidate.ValueAsString;
-            }
-        }
-        catch
-        {
-            // Fall through
-        }
-
-        return key;
     }
 
     private async void OpenProjectWebsiteButton_Click(object sender, RoutedEventArgs e)
