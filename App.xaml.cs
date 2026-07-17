@@ -55,8 +55,6 @@ namespace wows_ime
 
         private void CreateWindowContent(Window targetWindow)
         {
-            var titleBar = CreateTitleBar();
-
             var contentFrame = new Frame();
             contentFrame.NavigationFailed += OnNavigationFailed;
 
@@ -66,8 +64,11 @@ namespace wows_ime
                 IsSettingsVisible = false,
                 PaneDisplayMode = NavigationViewPaneDisplayMode.Left,
                 IsTitleBarAutoPaddingEnabled = false,
+                OpenPaneLength = 200,
                 Content = contentFrame
             };
+
+            var titleBar = CreateTitleBar(navigationView);
 
             navigationView.MenuItems.Add(CreateNavItem("Nav/Home", "\uE80F", "home"));
             navigationView.MenuItems.Add(CreateNavItem("Nav/Settings", "\uE713", "settings"));
@@ -116,20 +117,31 @@ namespace wows_ime
             };
         }
 
-        private static TitleBar CreateTitleBar()
+        private static TitleBar CreateTitleBar(NavigationView navigationView)
         {
-            return new TitleBar
+            var titleBar = new TitleBar
             {
                 Title = SR("App/Title"),
                 Height = 48,
                 Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0)),
                 IsBackButtonVisible = false,
-                IsPaneToggleButtonVisible = false,
+                IsPaneToggleButtonVisible = true,
                 IconSource = new ImageIconSource
                 {
                     ImageSource = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.ico"))
                 }
             };
+
+            titleBar.Loaded += (_, _) =>
+            {
+                var paneButton = FindVisualChild<Button>(titleBar, "PaneToggleButton");
+                if (paneButton is not null)
+                {
+                    paneButton.Click += (_, _) => navigationView.IsPaneOpen = !navigationView.IsPaneOpen;
+                }
+            };
+
+            return titleBar;
         }
 
         private static void SetWindowIcon(Window targetWindow)
@@ -315,6 +327,27 @@ namespace wows_ime
             int cbAttribute);
 
         private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+
+        private static T? FindVisualChild<T>(DependencyObject parent, string name) where T : FrameworkElement
+        {
+            var count = VisualTreeHelper.GetChildrenCount(parent);
+            for (var i = 0; i < count; i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T element && element.Name == name)
+                {
+                    return element;
+                }
+
+                var descendant = FindVisualChild<T>(child, name);
+                if (descendant is not null)
+                {
+                    return descendant;
+                }
+            }
+
+            return null;
+        }
 
         private static string SR(string key)
         {
