@@ -7,6 +7,13 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d">
+
+    <Page.Resources>
+        <ContentDialog
+            x:Name="ErrorDialog"
+            CloseButtonText="OK" />
+    </Page.Resources>
+
     <Page.Content>
         <ScrollViewer
             VerticalScrollMode="Enabled"

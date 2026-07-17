@@ -119,7 +119,10 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
             return;
         }
 
-        if (!await ConfirmDeleteCustomGamePathAsync(option))
+        DeleteCustomGamePathDialog.XamlRoot = XamlRoot;
+        DeleteCustomGamePathDialog.Content = SRF("Dialog/DeleteCustomGamePath/Content", option.DisplayName, option.Path);
+
+        if (await DeleteCustomGamePathDialog.ShowAsync() != ContentDialogResult.Primary)
         {
             return;
         }
@@ -164,42 +167,16 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
 
     private async void AddCustomImeButton_Click(object sender, RoutedEventArgs e)
     {
-        var nameBox = new TextBox
-        {
-            PlaceholderText = SR("Dialog/AddCustomIme/Placeholder")
-        };
+        CustomImeNameBox.Text = string.Empty;
+        CustomImeCategoryCombo.SelectedIndex = 0;
+        AddCustomImeDialog.XamlRoot = XamlRoot;
 
-        var categoryCombo = new ComboBox
-        {
-            SelectedIndex = 0
-        };
-        categoryCombo.Items.Add(new ComboBoxItem { Content = SR("Category/ChineseSimplified") });
-        categoryCombo.Items.Add(new ComboBoxItem { Content = SR("Category/ChineseTraditional") });
-        categoryCombo.Items.Add(new ComboBoxItem { Content = SR("Category/Japanese") });
-
-        var panel = new StackPanel { Spacing = 8 };
-        panel.Children.Add(new TextBlock { Text = SR("Dialog/AddCustomIme/NameLabel") });
-        panel.Children.Add(nameBox);
-        panel.Children.Add(new TextBlock { Text = SR("Dialog/AddCustomIme/CategoryLabel") });
-        panel.Children.Add(categoryCombo);
-
-        var dialog = new ContentDialog
-        {
-            Title = SR("Dialog/AddCustomIme/Title"),
-            Content = panel,
-            PrimaryButtonText = SR("Dialog/AddCustomIme/PrimaryButton"),
-            CloseButtonText = SR("Dialog/Common/Cancel"),
-            DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = XamlRoot
-        };
-
-        var result = await dialog.ShowAsync();
-        if (result != ContentDialogResult.Primary)
+        if (await AddCustomImeDialog.ShowAsync() != ContentDialogResult.Primary)
         {
             return;
         }
 
-        var name = nameBox.Text?.Trim() ?? string.Empty;
+        var name = CustomImeNameBox.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(name))
         {
             ShowStatus(SR("Status/ImeNameEmpty"), InfoBarSeverity.Warning);
@@ -215,7 +192,7 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
         var newItem = new InputMethodItem(name, isCustom: true)
         {
             IsSelected = true,
-            CategoryIndex = categoryCombo.SelectedIndex < 0 ? 0 : categoryCombo.SelectedIndex
+            CategoryIndex = CustomImeCategoryCombo.SelectedIndex < 0 ? 0 : CustomImeCategoryCombo.SelectedIndex
         };
 
         InputMethods.Add(newItem);
@@ -235,7 +212,10 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
             return;
         }
 
-        if (!await ConfirmDeleteCustomImeAsync(item.DisplayName))
+        DeleteCustomImeDialog.XamlRoot = XamlRoot;
+        DeleteCustomImeDialog.Content = SRF("Dialog/DeleteCustomIme/Content", item.DisplayName);
+
+        if (await DeleteCustomImeDialog.ShowAsync() != ContentDialogResult.Primary)
         {
             return;
         }
@@ -287,8 +267,10 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
         var existing = targetFiles.Where(File.Exists).ToList();
         if (existing.Count > 0)
         {
-            var shouldOverwrite = await ConfirmOverwriteAsync(existing.Count);
-            if (!shouldOverwrite)
+            OverwriteDialog.XamlRoot = XamlRoot;
+            OverwriteDialog.Content = SRF("Dialog/Overwrite/Content", existing.Count);
+
+            if (await OverwriteDialog.ShowAsync() != ContentDialogResult.Primary)
             {
                 ShowStatus(SR("Status/WriteCanceled"), InfoBarSeverity.Informational);
                 return;
@@ -296,8 +278,10 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
         }
         else
         {
-            var shouldAdd = await ConfirmAddAsync(targetFiles.Count);
-            if (!shouldAdd)
+            AddConfigDialog.XamlRoot = XamlRoot;
+            AddConfigDialog.Content = SRF("Dialog/AddConfig/Content", targetFiles.Count);
+
+            if (await AddConfigDialog.ShowAsync() != ContentDialogResult.Primary)
             {
                 ShowStatus(SR("Status/WriteCanceled"), InfoBarSeverity.Informational);
                 return;
@@ -336,70 +320,6 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
         }
 
         ShowStatus(SRF("Status/ScanCompletedWithCount", InputMethods.Count), InfoBarSeverity.Success);
-    }
-
-    private async Task<bool> ConfirmOverwriteAsync(int existingCount)
-    {
-        var dialog = new ContentDialog
-        {
-            Title = SR("Dialog/Overwrite/Title"),
-            Content = SRF("Dialog/Overwrite/Content", existingCount),
-            PrimaryButtonText = SR("Dialog/Overwrite/PrimaryButton"),
-            CloseButtonText = SR("Dialog/Common/Cancel"),
-            DefaultButton = ContentDialogButton.Close,
-            XamlRoot = XamlRoot
-        };
-
-        var result = await dialog.ShowAsync();
-        return result == ContentDialogResult.Primary;
-    }
-
-    private async Task<bool> ConfirmAddAsync(int targetCount)
-    {
-        var dialog = new ContentDialog
-        {
-            Title = SR("Dialog/AddConfig/Title"),
-            Content = SRF("Dialog/AddConfig/Content", targetCount),
-            PrimaryButtonText = SR("Dialog/AddConfig/PrimaryButton"),
-            CloseButtonText = SR("Dialog/Common/Cancel"),
-            DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = XamlRoot
-        };
-
-        var result = await dialog.ShowAsync();
-        return result == ContentDialogResult.Primary;
-    }
-
-    private async Task<bool> ConfirmDeleteCustomGamePathAsync(GamePathOption option)
-    {
-        var dialog = new ContentDialog
-        {
-            Title = SR("Dialog/DeleteCustomGamePath/Title"),
-            Content = SRF("Dialog/DeleteCustomGamePath/Content", option.DisplayName, option.Path),
-            PrimaryButtonText = SR("Dialog/DeleteCustomGamePath/PrimaryButton"),
-            CloseButtonText = SR("Dialog/Common/Cancel"),
-            DefaultButton = ContentDialogButton.Close,
-            XamlRoot = XamlRoot
-        };
-
-        var result = await dialog.ShowAsync();
-        return result == ContentDialogResult.Primary;
-    }
-
-    private async Task<bool> ConfirmDeleteCustomImeAsync(string displayName)
-    {
-        var dialog = new ContentDialog
-        {
-            Title = SR("Dialog/DeleteCustomIme/Title"),
-            Content = SRF("Dialog/DeleteCustomIme/Content", displayName),
-            PrimaryButtonText = SR("Dialog/DeleteCustomIme/PrimaryButton"),
-            CloseButtonText = SR("Dialog/Common/Cancel"),
-            DefaultButton = ContentDialogButton.Close,
-            XamlRoot = XamlRoot
-        };
-
-        var result = await dialog.ShowAsync();
-        return result == ContentDialogResult.Primary;
     }
 
     private void LoadSavedCustomIme()

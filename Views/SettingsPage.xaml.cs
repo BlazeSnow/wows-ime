@@ -19,7 +19,7 @@ public sealed partial class SettingsPage : Page
         var launched = await Windows.System.Launcher.LaunchUriAsync(ProjectWebsiteUri);
         if (!launched)
         {
-            ShowStatus(SR("Status/OpenProjectWebsiteFailed"), InfoBarSeverity.Error);
+            await ShowErrorAsync(SR("Status/OpenProjectWebsiteFailed"));
         }
     }
 
@@ -28,19 +28,15 @@ public sealed partial class SettingsPage : Page
         var launched = await Windows.System.Launcher.LaunchUriAsync(ProjectRepositoryUri);
         if (!launched)
         {
-            ShowStatus(SR("Status/OpenProjectRepositoryFailed"), InfoBarSeverity.Error);
+            await ShowErrorAsync(SR("Status/OpenProjectRepositoryFailed"));
         }
     }
 
-    private async void ShowStatus(string message, InfoBarSeverity severity)
+    private async Task ShowErrorAsync(string message)
     {
-        var dialog = new ContentDialog
-        {
-            Title = message,
-            CloseButtonText = SR("Dialog/Common/Cancel"),
-            XamlRoot = XamlRoot
-        };
-        await dialog.ShowAsync();
+        ErrorDialog.XamlRoot = XamlRoot;
+        ErrorDialog.Title = message;
+        await ErrorDialog.ShowAsync();
     }
 
     private static string SR(string key)

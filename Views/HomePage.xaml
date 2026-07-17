@@ -8,6 +8,45 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d">
+
+    <Page.Resources>
+        <ContentDialog
+            x:Name="AddCustomImeDialog"
+            x:Uid="Dialog/AddCustomIme"
+            DefaultButton="Primary">
+            <StackPanel Spacing="8">
+                <TextBlock x:Uid="Dialog/AddCustomIme/NameLabel" />
+                <TextBox x:Name="CustomImeNameBox" x:Uid="Dialog/AddCustomIme/Placeholder" />
+                <TextBlock x:Uid="Dialog/AddCustomIme/CategoryLabel" />
+                <ComboBox x:Name="CustomImeCategoryCombo" SelectedIndex="0">
+                    <ComboBoxItem x:Uid="Category/ChineseSimplified" />
+                    <ComboBoxItem x:Uid="Category/ChineseTraditional" />
+                    <ComboBoxItem x:Uid="Category/Japanese" />
+                </ComboBox>
+            </StackPanel>
+        </ContentDialog>
+
+        <ContentDialog
+            x:Name="DeleteCustomImeDialog"
+            x:Uid="Dialog/DeleteCustomIme"
+            DefaultButton="Close" />
+
+        <ContentDialog
+            x:Name="DeleteCustomGamePathDialog"
+            x:Uid="Dialog/DeleteCustomGamePath"
+            DefaultButton="Close" />
+
+        <ContentDialog
+            x:Name="OverwriteDialog"
+            x:Uid="Dialog/Overwrite"
+            DefaultButton="Close" />
+
+        <ContentDialog
+            x:Name="AddConfigDialog"
+            x:Uid="Dialog/AddConfig"
+            DefaultButton="Primary" />
+    </Page.Resources>
+
     <Page.Content>
         <ScrollViewer
             VerticalScrollMode="Enabled"

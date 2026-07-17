@@ -1,7 +1,5 @@
-﻿using Microsoft.UI.Windowing;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
 using System.Text;
 using Windows.ApplicationModel.Resources;
@@ -11,9 +9,6 @@ using WinRT.Interop;
 
 namespace wows_ime
 {
-    /// <summary>
-    /// Provides application-specific behavior to supplement the default Application class.
-    /// </summary>
     public partial class App : Application
     {
         private Window window = Window.Current;
@@ -21,10 +16,6 @@ namespace wows_ime
         private static readonly ResourceLoader ResourceLoader = new();
         public static Window? MainWindow { get; private set; }
 
-        /// <summary>
-        /// Initializes the singleton application object.  This is the first line of authored code
-        /// executed, and as such is the logical equivalent of main() or WinMain().
-        /// </summary>
         public App()
         {
             this.InitializeComponent();
@@ -33,11 +24,6 @@ namespace wows_ime
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
         }
 
-        /// <summary>
-        /// Invoked when the application is launched normally by the end user.  Other entry points
-        /// will be used such as when the application is launched to open a specific file.
-        /// </summary>
-        /// <param name="e">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
             window ??= new Window();
@@ -46,103 +32,14 @@ namespace wows_ime
             window.SystemBackdrop = new MicaBackdrop();
             SetWindowIcon(window);
 
-            CreateWindowContent(window);
+            var shell = new Shell();
+            window.ExtendsContentIntoTitleBar = true;
+            window.Content = shell;
+            window.SetTitleBar(shell.AppTitleBar);
+
             ApplySystemTitleBarTheme(window);
             EnsureThemeListener();
-
             window.Activate();
-        }
-
-        private void CreateWindowContent(Window targetWindow)
-        {
-            var contentFrame = new Frame();
-            contentFrame.NavigationFailed += OnNavigationFailed;
-
-            var navigationView = new NavigationView
-            {
-                IsBackButtonVisible = NavigationViewBackButtonVisible.Collapsed,
-                IsSettingsVisible = false,
-                IsPaneToggleButtonVisible = false,
-                PaneDisplayMode = NavigationViewPaneDisplayMode.Left,
-                IsTitleBarAutoPaddingEnabled = false,
-                OpenPaneLength = 200,
-                Content = contentFrame
-            };
-
-            var titleBar = CreateTitleBar(navigationView);
-
-            navigationView.MenuItems.Add(CreateNavItem("Nav/Home", "\uE80F", "home"));
-            navigationView.MenuItems.Add(CreateNavItem("Nav/Settings", "\uE713", "settings"));
-
-            navigationView.SelectionChanged += (sender, args) =>
-            {
-                if (args.SelectedItem is NavigationViewItem { Tag: string tag })
-                {
-                    var pageType = tag switch
-                    {
-                        "settings" => typeof(SettingsPage),
-                        _ => typeof(HomePage)
-                    };
-                    _ = contentFrame.Navigate(pageType);
-                }
-            };
-
-            var rootGrid = new Grid
-            {
-                Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0))
-            };
-            rootGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(48) });
-            rootGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-
-            Grid.SetRow(titleBar, 0);
-            Grid.SetRow(navigationView, 1);
-            rootGrid.Children.Add(titleBar);
-            rootGrid.Children.Add(navigationView);
-
-            targetWindow.ExtendsContentIntoTitleBar = true;
-            targetWindow.Content = rootGrid;
-            targetWindow.SetTitleBar(titleBar);
-
-            // Default to home page
-            _ = contentFrame.Navigate(typeof(HomePage));
-            navigationView.SelectedItem = navigationView.MenuItems[0];
-        }
-
-        private static NavigationViewItem CreateNavItem(string resourceKey, string glyph, string tag)
-        {
-            return new NavigationViewItem
-            {
-                Content = SR(resourceKey),
-                Icon = new FontIcon { Glyph = glyph },
-                Tag = tag
-            };
-        }
-
-        private static TitleBar CreateTitleBar(NavigationView navigationView)
-        {
-            var titleBar = new TitleBar
-            {
-                Title = SR("App/Title"),
-                Height = 48,
-                Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0)),
-                IsBackButtonVisible = false,
-                IsPaneToggleButtonVisible = true,
-                IconSource = new ImageIconSource
-                {
-                    ImageSource = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.ico"))
-                }
-            };
-
-            titleBar.Loaded += (_, _) =>
-            {
-                var paneButton = FindVisualChild<Button>(titleBar, "PaneToggleButton");
-                if (paneButton is not null)
-                {
-                    paneButton.Click += (_, _) => navigationView.IsPaneOpen = !navigationView.IsPaneOpen;
-                }
-            };
-
-            return titleBar;
         }
 
         private static void SetWindowIcon(Window targetWindow)
@@ -250,16 +147,6 @@ namespace wows_ime
             }
         }
 
-        /// <summary>
-        /// Invoked when Navigation to a certain page fails
-        /// </summary>
-        /// <param name="sender">The Frame which failed navigation</param>
-        /// <param name="e">Details about the navigation failure</param>
-        void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
-        {
-            throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
-        }
-
         private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
         {
             WriteCrashLog("XamlUnhandledException", e.Exception);
@@ -328,27 +215,6 @@ namespace wows_ime
             int cbAttribute);
 
         private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
-
-        private static T? FindVisualChild<T>(DependencyObject parent, string name) where T : FrameworkElement
-        {
-            var count = VisualTreeHelper.GetChildrenCount(parent);
-            for (var i = 0; i < count; i++)
-            {
-                var child = VisualTreeHelper.GetChild(parent, i);
-                if (child is T element && element.Name == name)
-                {
-                    return element;
-                }
-
-                var descendant = FindVisualChild<T>(child, name);
-                if (descendant is not null)
-                {
-                    return descendant;
-                }
-            }
-
-            return null;
-        }
 
         private static string SR(string key)
         {
