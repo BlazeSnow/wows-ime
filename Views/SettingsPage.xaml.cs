@@ -30,15 +30,15 @@ public sealed partial class SettingsPage : Page
         LanguageCard.Header = SR("Settings/LanguageLabel");
         AutomaticLanguageItem.Content = "自动";
 
-        ProjectWebsiteCard.Header = SR("ProjectWebsiteCardHeader");
+        ProjectWebsiteCard.Header = SR("ProjectWebsiteCardHeader.Text");
         ProjectWebsiteCard.Description = "https://www.blazesnow.com/wows/";
-        OpenProjectWebsiteButton.Content = SR("OpenProjectWebsiteButton");
+        OpenProjectWebsiteButton.Content = SR("OpenProjectWebsiteButton.Content");
 
-        ProjectRepositoryCard.Header = SR("ProjectRepositoryCardHeader");
+        ProjectRepositoryCard.Header = SR("ProjectRepositoryCardHeader.Text");
         ProjectRepositoryCard.Description = "https://github.com/BlazeSnow/wows-ime";
-        OpenProjectRepositoryButton.Content = SR("OpenProjectRepositoryButton");
+        OpenProjectRepositoryButton.Content = SR("OpenProjectRepositoryButton.Content");
 
-        VersionCard.Header = SR("AppVersionCardHeader");
+        VersionCard.Header = SR("AppVersionCardHeader.Text");
     }
 
     private void SelectLanguage(string? language)

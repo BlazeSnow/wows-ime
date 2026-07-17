@@ -24,7 +24,7 @@
 
             <toolkit:SettingsCard x:Name="LanguageCard" Grid.Row="0">
                 <toolkit:SettingsCard.HeaderIcon>
-                    <FontIcon Glyph="&#xE8B1;" />
+                    <FontIcon Glyph="&#xE8C1;" />
                 </toolkit:SettingsCard.HeaderIcon>
                 <ComboBox
                     x:Name="LanguageComboBox"
