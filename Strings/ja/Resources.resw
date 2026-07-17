@@ -250,7 +250,8 @@
     <value>カスタムパスを削除</value>
   </data>
   <data name="Dialog/DeleteCustomGamePath/Content" xml:space="preserve">
-    <value>「{0}」を削除してもよろしいですか？&#x0A;{1}</value>
+    <value>「{0}」を削除してもよろしいですか？
+{1}</value>
   </data>
   <data name="Dialog/DeleteCustomGamePath/PrimaryButton" xml:space="preserve">
     <value>削除</value>

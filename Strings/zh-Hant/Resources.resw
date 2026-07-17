@@ -250,7 +250,8 @@
     <value>刪除自訂路徑</value>
   </data>
   <data name="Dialog/DeleteCustomGamePath/Content" xml:space="preserve">
-    <value>確定要刪除「{0}」嗎？&#x0A;{1}</value>
+    <value>確定要刪除「{0}」嗎？
+{1}</value>
   </data>
   <data name="Dialog/DeleteCustomGamePath/PrimaryButton" xml:space="preserve">
     <value>刪除</value>
