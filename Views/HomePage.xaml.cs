@@ -472,6 +472,17 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
         StatusInfoBar.Severity = severity;
         StatusInfoBar.Message = message;
         StatusInfoBar.IsOpen = true;
+
+        var timer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(5)
+        };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            StatusInfoBar.IsOpen = false;
+        };
+        timer.Start();
     }
 
     private static string SR(string key)

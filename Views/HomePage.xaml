@@ -43,14 +43,20 @@
     </Page.Resources>
 
     <Page.Content>
+        <Grid Background="Transparent">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
         <ScrollViewer
+            Grid.Row="0"
             VerticalScrollMode="Enabled"
             VerticalScrollBarVisibility="Auto"
             HorizontalScrollMode="Disabled"
             HorizontalScrollBarVisibility="Disabled">
         <Grid Padding="20" RowSpacing="8" Background="Transparent">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -239,8 +245,10 @@
                 <Button x:Uid="WriteConfigButton" Click="WriteConfigButton_Click" Style="{StaticResource AccentButtonStyle}" />
             </toolkit:SettingsCard>
 
-            <InfoBar Grid.Row="3" x:Name="StatusInfoBar" IsOpen="False" IsClosable="False" />
         </Grid>
         </ScrollViewer>
+
+            <InfoBar Grid.Row="1" x:Name="StatusInfoBar" IsOpen="False" IsClosable="True" />
+        </Grid>
     </Page.Content>
 </Page>
