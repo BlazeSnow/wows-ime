@@ -27,18 +27,18 @@ public sealed partial class SettingsPage : Page
 
     private void ApplyLocalization()
     {
-        LanguageCard.Header = SR("Settings/LanguageLabel");
+        LanguageCard.Header = new TextBlock { Text = SR("Settings/LanguageLabel") };
         AutomaticLanguageItem.Content = "自动";
 
-        ProjectWebsiteCard.Header = SR("ProjectWebsiteCardHeader.Text");
+        ProjectWebsiteCard.Header = new TextBlock { Text = SR("ProjectWebsiteCardHeader/Text") };
         ProjectWebsiteCard.Description = "https://www.blazesnow.com/wows/";
-        OpenProjectWebsiteButton.Content = SR("OpenProjectWebsiteButton.Content");
+        OpenProjectWebsiteButton.Content = SR("OpenProjectWebsiteButton/Content");
 
-        ProjectRepositoryCard.Header = SR("ProjectRepositoryCardHeader.Text");
+        ProjectRepositoryCard.Header = new TextBlock { Text = SR("ProjectRepositoryCardHeader/Text") };
         ProjectRepositoryCard.Description = "https://github.com/BlazeSnow/wows-ime";
-        OpenProjectRepositoryButton.Content = SR("OpenProjectRepositoryButton.Content");
+        OpenProjectRepositoryButton.Content = SR("OpenProjectRepositoryButton/Content");
 
-        VersionCard.Header = SR("AppVersionCardHeader.Text");
+        VersionCard.Header = new TextBlock { Text = SR("AppVersionCardHeader/Text") };
     }
 
     private void SelectLanguage(string? language)
