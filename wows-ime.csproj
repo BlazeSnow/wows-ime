@@ -20,7 +20,7 @@
 
         <!-- App Options -->
         <UseRidGraph>true</UseRidGraph>
-        <Platforms>x86;x64;ARM64;AnyCPU</Platforms>
+        <Platforms>AnyCPU</Platforms>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
         <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
@@ -145,27 +145,9 @@
         <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
         <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
         <GenerateTestArtifacts>False</GenerateTestArtifacts>
-        <AppxBundle>Never</AppxBundle>
+        <AppxBundle>Always</AppxBundle>
         <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-      <NoWarn></NoWarn>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      <NoWarn></NoWarn>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
-      <NoWarn></NoWarn>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-      <NoWarn></NoWarn>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      <NoWarn></NoWarn>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
-      <NoWarn></NoWarn>
+        <AppxBundlePlatforms>neutral</AppxBundlePlatforms>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
       <NoWarn />
