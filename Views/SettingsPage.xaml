@@ -10,8 +10,7 @@
 
     <Page.Resources>
         <ContentDialog
-            x:Name="ErrorDialog"
-            CloseButtonText="OK" />
+            x:Name="ErrorDialog" />
     </Page.Resources>
 
     <Page.Content>

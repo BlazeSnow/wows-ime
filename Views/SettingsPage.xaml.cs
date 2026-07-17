@@ -12,6 +12,7 @@ public sealed partial class SettingsPage : Page
     public SettingsPage()
     {
         InitializeComponent();
+        ErrorDialog.CloseButtonText = "OK";
     }
 
     private async void OpenProjectWebsiteButton_Click(object sender, RoutedEventArgs e)

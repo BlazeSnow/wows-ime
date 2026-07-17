@@ -12,38 +12,33 @@
     <Page.Resources>
         <ContentDialog
             x:Name="AddCustomImeDialog"
-            x:Uid="Dialog/AddCustomIme"
             DefaultButton="Primary">
             <StackPanel Spacing="8">
-                <TextBlock x:Uid="Dialog/AddCustomIme/NameLabel" />
-                <TextBox x:Name="CustomImeNameBox" x:Uid="Dialog/AddCustomIme/Placeholder" />
-                <TextBlock x:Uid="Dialog/AddCustomIme/CategoryLabel" />
+                <TextBlock x:Name="CustomImeNameLabel" />
+                <TextBox x:Name="CustomImeNameBox" />
+                <TextBlock x:Name="CustomImeCategoryLabel" />
                 <ComboBox x:Name="CustomImeCategoryCombo" SelectedIndex="0">
-                    <ComboBoxItem x:Uid="Category/ChineseSimplified" />
-                    <ComboBoxItem x:Uid="Category/ChineseTraditional" />
-                    <ComboBoxItem x:Uid="Category/Japanese" />
+                    <ComboBoxItem x:Name="CategorySimplifiedItem" />
+                    <ComboBoxItem x:Name="CategoryTraditionalItem" />
+                    <ComboBoxItem x:Name="CategoryJapaneseItem" />
                 </ComboBox>
             </StackPanel>
         </ContentDialog>
 
         <ContentDialog
             x:Name="DeleteCustomImeDialog"
-            x:Uid="Dialog/DeleteCustomIme"
             DefaultButton="Close" />
 
         <ContentDialog
             x:Name="DeleteCustomGamePathDialog"
-            x:Uid="Dialog/DeleteCustomGamePath"
             DefaultButton="Close" />
 
         <ContentDialog
             x:Name="OverwriteDialog"
-            x:Uid="Dialog/Overwrite"
             DefaultButton="Close" />
 
         <ContentDialog
             x:Name="AddConfigDialog"
-            x:Uid="Dialog/AddConfig"
             DefaultButton="Primary" />
     </Page.Resources>
 

@@ -40,10 +40,40 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
         suppressSettingsSave = true;
         SettingsPersistence.Initialize();
         InitializeComponent();
+        InitializeDialogs();
         LoadGamePathOptions();
         LoadInputMethods();
         LoadSavedCustomIme();
         suppressSettingsSave = false;
+    }
+
+    private void InitializeDialogs()
+    {
+        AddCustomImeDialog.Title = SR("Dialog/AddCustomIme/Title");
+        AddCustomImeDialog.PrimaryButtonText = SR("Dialog/AddCustomIme/PrimaryButton");
+        AddCustomImeDialog.CloseButtonText = SR("Dialog/Common/Cancel");
+        CustomImeNameLabel.Text = SR("Dialog/AddCustomIme/NameLabel");
+        CustomImeNameBox.PlaceholderText = SR("Dialog/AddCustomIme/Placeholder");
+        CustomImeCategoryLabel.Text = SR("Dialog/AddCustomIme/CategoryLabel");
+        CategorySimplifiedItem.Content = SR("Category/ChineseSimplified");
+        CategoryTraditionalItem.Content = SR("Category/ChineseTraditional");
+        CategoryJapaneseItem.Content = SR("Category/Japanese");
+
+        DeleteCustomImeDialog.Title = SR("Dialog/DeleteCustomIme/Title");
+        DeleteCustomImeDialog.PrimaryButtonText = SR("Dialog/DeleteCustomIme/PrimaryButton");
+        DeleteCustomImeDialog.CloseButtonText = SR("Dialog/Common/Cancel");
+
+        DeleteCustomGamePathDialog.Title = SR("Dialog/DeleteCustomGamePath/Title");
+        DeleteCustomGamePathDialog.PrimaryButtonText = SR("Dialog/DeleteCustomGamePath/PrimaryButton");
+        DeleteCustomGamePathDialog.CloseButtonText = SR("Dialog/Common/Cancel");
+
+        OverwriteDialog.Title = SR("Dialog/Overwrite/Title");
+        OverwriteDialog.PrimaryButtonText = SR("Dialog/Overwrite/PrimaryButton");
+        OverwriteDialog.CloseButtonText = SR("Dialog/Common/Cancel");
+
+        AddConfigDialog.Title = SR("Dialog/AddConfig/Title");
+        AddConfigDialog.PrimaryButtonText = SR("Dialog/AddConfig/PrimaryButton");
+        AddConfigDialog.CloseButtonText = SR("Dialog/Common/Cancel");
     }
 
     private async void AddCustomGamePathButton_Click(object sender, RoutedEventArgs e)
