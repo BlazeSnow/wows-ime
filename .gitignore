@@ -1,4 +1,9 @@
 .vs/
+AppPackages/
 bin/
+BundleArtifacts/
 obj/
 *.user
+.agents/
+.zcode/
+*.pfx
