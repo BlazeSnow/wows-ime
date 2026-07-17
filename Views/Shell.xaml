@@ -17,7 +17,6 @@
             x:Name="AppTitleBar"
             x:FieldModifier="public"
             Grid.Row="0"
-            Title="ms-resource:App/Title"
             Height="48"
             Background="Transparent"
             IsBackButtonVisible="False"
@@ -39,12 +38,12 @@
             OpenPaneLength="200"
             SelectionChanged="AppNavView_SelectionChanged">
             <NavigationView.MenuItems>
-                <NavigationViewItem x:Uid="Nav/Home" Tag="home">
+                <NavigationViewItem x:Name="NavHomeItem" Tag="home">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE80F;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem x:Uid="Nav/Settings" Tag="settings">
+                <NavigationViewItem x:Name="NavSettingsItem" Tag="settings">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE713;" />
                     </NavigationViewItem.Icon>

@@ -1,12 +1,18 @@
 using Microsoft.UI.Xaml.Media;
+using Windows.ApplicationModel.Resources;
 
 namespace wows_ime.Views;
 
 public sealed partial class Shell : UserControl
 {
+    private static readonly ResourceLoader ResourceLoader = new();
+
     public Shell()
     {
         InitializeComponent();
+        AppTitleBar.Title = SR("App/Title");
+        NavHomeItem.Content = SR("Nav/Home");
+        NavSettingsItem.Content = SR("Nav/Settings");
         _ = ContentFrame.Navigate(typeof(HomePage));
         AppNavView.SelectedItem = AppNavView.MenuItems[0];
     }
@@ -57,5 +63,11 @@ public sealed partial class Shell : UserControl
         }
 
         return null;
+    }
+
+    private static string SR(string key)
+    {
+        var value = ResourceLoader.GetString(key);
+        return string.IsNullOrEmpty(value) ? key : value;
     }
 }
