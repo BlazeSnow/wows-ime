@@ -62,6 +62,7 @@ namespace wows_ime
             {
                 IsBackButtonVisible = NavigationViewBackButtonVisible.Collapsed,
                 IsSettingsVisible = false,
+                IsPaneToggleButtonVisible = false,
                 PaneDisplayMode = NavigationViewPaneDisplayMode.Left,
                 IsTitleBarAutoPaddingEnabled = false,
                 OpenPaneLength = 200,
