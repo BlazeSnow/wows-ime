@@ -27,7 +27,7 @@
                     <FontIcon Glyph="&#xE774;" />
                 </toolkit:SettingsCard.HeaderIcon>
                 <toolkit:SettingsCard.Header>
-                    <TextBlock x:Uid="ProjectWebsiteCardHeader" FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock x:Uid="ProjectWebsiteCardHeader" />
                 </toolkit:SettingsCard.Header>
                 <Button x:Uid="OpenProjectWebsiteButton" Click="OpenProjectWebsiteButton_Click" />
             </toolkit:SettingsCard>
@@ -39,7 +39,7 @@
                     <FontIcon Glyph="&#xE943;" />
                 </toolkit:SettingsCard.HeaderIcon>
                 <toolkit:SettingsCard.Header>
-                    <TextBlock x:Uid="ProjectRepositoryCardHeader" FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock x:Uid="ProjectRepositoryCardHeader" />
                 </toolkit:SettingsCard.Header>
                 <Button x:Uid="OpenProjectRepositoryButton" Click="OpenProjectRepositoryButton_Click" />
             </toolkit:SettingsCard>
@@ -49,7 +49,7 @@
                     <FontIcon Glyph="&#xE946;" />
                 </toolkit:SettingsCard.HeaderIcon>
                 <toolkit:SettingsCard.Header>
-                    <TextBlock x:Uid="AppVersionCardHeader" FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock x:Uid="AppVersionCardHeader" />
                 </toolkit:SettingsCard.Header>
                 <TextBlock Text="{x:Bind AppVersionText}" />
             </toolkit:SettingsCard>

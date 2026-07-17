@@ -34,7 +34,7 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock x:Uid="GameRootLabel" VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" />
+                        <TextBlock x:Uid="GameRootLabel" VerticalAlignment="Center" />
                         <Button x:Uid="AddCustomGamePathButton" Grid.Column="1" Click="AddCustomGamePathButton_Click" VerticalAlignment="Center" />
                         <Button x:Uid="OpenFolderButton" Grid.Column="2" Click="OpenFolderButton_Click" VerticalAlignment="Center" />
                         <TextBlock
@@ -122,7 +122,7 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock x:Uid="ImeSectionTitle" VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" />
+                        <TextBlock x:Uid="ImeSectionTitle" VerticalAlignment="Center" />
                         <Button x:Uid="AddCustomImeButton" Grid.Column="1" Click="AddCustomImeButton_Click" />
                         <Button x:Uid="RefreshImeButton" Grid.Column="2" Click="RefreshImeButton_Click" />
                     </Grid>
@@ -141,9 +141,9 @@
                                 <ColumnDefinition Width="180" />
                                 <ColumnDefinition Width="80" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock x:Uid="ImeTableHeaderName" Grid.Column="1" FontWeight="SemiBold" />
-                            <TextBlock x:Uid="ImeTableHeaderCategory" Grid.Column="2" FontWeight="SemiBold" />
-                            <TextBlock x:Uid="ImeTableHeaderAction" Grid.Column="3" FontWeight="SemiBold" />
+                            <TextBlock x:Uid="ImeTableHeaderName" Grid.Column="1" />
+                            <TextBlock x:Uid="ImeTableHeaderCategory" Grid.Column="2" />
+                            <TextBlock x:Uid="ImeTableHeaderAction" Grid.Column="3" />
 
                             <ListView
                                 Grid.Row="1"
@@ -200,7 +200,7 @@
                     <FontIcon Glyph="&#xE74E;" />
                 </toolkit:SettingsCard.HeaderIcon>
                 <toolkit:SettingsCard.Header>
-                    <TextBlock x:Uid="WriteConfigCardHeader" FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock x:Uid="WriteConfigCardHeader" />
                 </toolkit:SettingsCard.Header>
                 <Button x:Uid="WriteConfigButton" Click="WriteConfigButton_Click" Style="{StaticResource AccentButtonStyle}" />
             </toolkit:SettingsCard>
