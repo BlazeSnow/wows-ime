@@ -20,7 +20,7 @@
 
         <!-- App Options -->
         <UseRidGraph>true</UseRidGraph>
-        <Platforms>AnyCPU</Platforms>
+        <Platforms>ARM64;x64;x86</Platforms>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
         <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
@@ -145,14 +145,8 @@
         <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
         <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
         <GenerateTestArtifacts>False</GenerateTestArtifacts>
-        <AppxBundle>Never</AppxBundle>
+        <AppxBundle>Always</AppxBundle>
         <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
-        <AppxBundlePlatforms>neutral</AppxBundlePlatforms>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-      <NoWarn />
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-      <NoWarn />
+        <AppxBundlePlatforms>x86|x64|arm64</AppxBundlePlatforms>
     </PropertyGroup>
 </Project>
