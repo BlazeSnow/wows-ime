@@ -9,12 +9,12 @@
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d">
 
-    <Page.Content>
-        <Grid Background="Transparent">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+    <Grid Background="Transparent">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
         <ScrollViewer
             Grid.Row="0"
@@ -29,7 +29,8 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <toolkit:SettingsExpander Grid.Row="0" IsExpanded="True">
+            <!-- Step 1: Game Path -->
+            <toolkit:SettingsExpander x:Name="GamePathSection" Grid.Row="0" IsExpanded="True">
                 <toolkit:SettingsExpander.HeaderIcon>
                     <FontIcon Glyph="&#xE8B7;" />
                 </toolkit:SettingsExpander.HeaderIcon>
@@ -118,7 +119,8 @@
                 </toolkit:SettingsExpander.Items>
             </toolkit:SettingsExpander>
 
-            <toolkit:SettingsExpander Grid.Row="1" IsExpanded="True" VerticalAlignment="Stretch">
+            <!-- Step 2: IME Selection -->
+            <toolkit:SettingsExpander x:Name="ImeSection" Grid.Row="1" IsExpanded="True" VerticalAlignment="Stretch" Visibility="Collapsed">
                 <toolkit:SettingsExpander.HeaderIcon>
                     <FontIcon Glyph="&#xE765;" />
                 </toolkit:SettingsExpander.HeaderIcon>
@@ -134,7 +136,6 @@
                         <Button x:Uid="RefreshImeButton" Grid.Column="2" Click="RefreshImeButton_Click" />
                     </Grid>
                 </toolkit:SettingsExpander.Header>
-
                 <toolkit:SettingsExpander.Items>
                     <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
                         <Grid RowSpacing="8">
@@ -200,22 +201,34 @@
                 </toolkit:SettingsExpander.Items>
             </toolkit:SettingsExpander>
 
+            <!-- Step 3: Confirm & Write -->
             <toolkit:SettingsCard
+                x:Name="ConfirmSection"
                 Grid.Row="2"
-                x:Uid="WriteConfigCard">
+                x:Uid="WriteConfigCard"
+                Visibility="Collapsed">
                 <toolkit:SettingsCard.HeaderIcon>
                     <FontIcon Glyph="&#xE74E;" />
                 </toolkit:SettingsCard.HeaderIcon>
                 <toolkit:SettingsCard.Header>
                     <TextBlock x:Uid="WriteConfigCardHeader" />
                 </toolkit:SettingsCard.Header>
-                <Button x:Uid="WriteConfigButton" Click="WriteConfigButton_Click" Style="{StaticResource AccentButtonStyle}" />
+                <TextBlock x:Name="ConfirmSummary" TextWrapping="WrapWholeWords" Opacity="0.72" />
             </toolkit:SettingsCard>
-
         </Grid>
         </ScrollViewer>
 
-            <InfoBar Grid.Row="1" x:Name="StatusInfoBar" IsOpen="False" IsClosable="True" Margin="20,0,20,8" />
+        <!-- Navigation Bar -->
+        <Grid Grid.Row="1" Margin="20,8,20,0" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button x:Name="PrevButton" x:Uid="Step/Previous" Click="PrevButton_Click" Visibility="Collapsed" />
+            <Button x:Name="NextButton" Grid.Column="2" x:Uid="Step/Next" Click="NextButton_Click" Style="{StaticResource AccentButtonStyle}" />
         </Grid>
-    </Page.Content>
+
+        <InfoBar Grid.Row="2" x:Name="StatusInfoBar" IsOpen="False" IsClosable="True" Margin="20,4,20,8" />
+    </Grid>
 </Page>

@@ -15,6 +15,7 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
     private const string Cn360DefaultPath = @"C:\Games\World_of_Warships_CN360";
     private string? lastScanWarning;
     private bool suppressSettingsSave;
+    private int currentStep = 1;
     private string currentSelectedGamePathText = string.Empty;
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -44,44 +45,71 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
         LoadInputMethods();
         LoadSavedCustomIme();
         suppressSettingsSave = false;
+        UpdateStepVisibility();
     }
 
-    private ContentDialog CreateAddCustomImeDialog()
+    private void UpdateStepVisibility()
     {
-        var nameBox = new TextBox { PlaceholderText = SR("Dialog/AddCustomIme/Placeholder") };
-        var categoryCombo = new ComboBox { SelectedIndex = 0 };
-        categoryCombo.Items.Add(new ComboBoxItem { Content = SR("Category/ChineseSimplified") });
-        categoryCombo.Items.Add(new ComboBoxItem { Content = SR("Category/ChineseTraditional") });
-        categoryCombo.Items.Add(new ComboBoxItem { Content = SR("Category/Japanese") });
+        GamePathSection.Visibility = currentStep == 1 ? Visibility.Visible : Visibility.Collapsed;
+        ImeSection.Visibility = currentStep == 2 ? Visibility.Visible : Visibility.Collapsed;
+        ConfirmSection.Visibility = currentStep == 3 ? Visibility.Visible : Visibility.Collapsed;
 
-        var panel = new StackPanel { Spacing = 8 };
-        panel.Children.Add(new TextBlock { Text = SR("Dialog/AddCustomIme/NameLabel") });
-        panel.Children.Add(nameBox);
-        panel.Children.Add(new TextBlock { Text = SR("Dialog/AddCustomIme/CategoryLabel") });
-        panel.Children.Add(categoryCombo);
+        PrevButton.Visibility = currentStep > 1 ? Visibility.Visible : Visibility.Collapsed;
+        NextButton.Visibility = currentStep < 3 ? Visibility.Visible : Visibility.Collapsed;
 
-        return new ContentDialog
+        if (currentStep == 3)
         {
-            Title = SR("Dialog/AddCustomIme/Title"),
-            Content = panel,
-            PrimaryButtonText = SR("Dialog/AddCustomIme/PrimaryButton"),
-            CloseButtonText = SR("Dialog/Common/Cancel"),
-            DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = XamlRoot
-        };
+            UpdateConfirmSummary();
+        }
     }
 
-    private ContentDialog CreateConfirmDialog(string titleKey, string content, string primaryKey, bool primaryIsDefault = false)
+    private void UpdateConfirmSummary()
     {
-        return new ContentDialog
+        var path = GamePathOptions.FirstOrDefault(o => o.IsSelected)?.DisplayName ?? SR("Status/GameRootInvalid");
+        var imeCount = InputMethods.Count(i => i.IsSelected);
+        var imeList = string.Join("\n", InputMethods.Where(i => i.IsSelected).Select(i => $"• {i.DisplayName}"));
+        if (string.IsNullOrEmpty(imeList))
         {
-            Title = SR(titleKey),
-            Content = content,
-            PrimaryButtonText = SR(primaryKey),
-            CloseButtonText = SR("Dialog/Common/Cancel"),
-            DefaultButton = primaryIsDefault ? ContentDialogButton.Primary : ContentDialogButton.Close,
-            XamlRoot = XamlRoot
-        };
+            imeList = SR("Status/SelectAtLeastOneIme");
+        }
+
+        ConfirmSummary.Text = $"游戏路径: {path}\n\n已选输入法 ({imeCount}):\n{imeList}";
+    }
+
+    private void PrevButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (currentStep > 1)
+        {
+            currentStep--;
+            UpdateStepVisibility();
+        }
+    }
+
+    private void NextButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (currentStep == 1)
+        {
+            if (string.IsNullOrEmpty(GetSelectedGameRootPath()))
+            {
+                ShowStatus(SR("Status/GameRootInvalid"), InfoBarSeverity.Warning);
+                return;
+            }
+        }
+
+        if (currentStep == 2)
+        {
+            if (!InputMethods.Any(i => i.IsSelected))
+            {
+                ShowStatus(SR("Status/SelectAtLeastOneIme"), InfoBarSeverity.Warning);
+                return;
+            }
+        }
+
+        if (currentStep < 3)
+        {
+            currentStep++;
+            UpdateStepVisibility();
+        }
     }
 
     private async void AddCustomGamePathButton_Click(object sender, RoutedEventArgs e)
@@ -203,6 +231,44 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
         {
             ShowStatus(SRF("Status/OpenDirectoryFailed", ex.Message), InfoBarSeverity.Error);
         }
+    }
+
+    private ContentDialog CreateAddCustomImeDialog()
+    {
+        var nameBox = new TextBox { PlaceholderText = SR("Dialog/AddCustomIme/Placeholder") };
+        var categoryCombo = new ComboBox { SelectedIndex = 0 };
+        categoryCombo.Items.Add(new ComboBoxItem { Content = SR("Category/ChineseSimplified") });
+        categoryCombo.Items.Add(new ComboBoxItem { Content = SR("Category/ChineseTraditional") });
+        categoryCombo.Items.Add(new ComboBoxItem { Content = SR("Category/Japanese") });
+
+        var panel = new StackPanel { Spacing = 8 };
+        panel.Children.Add(new TextBlock { Text = SR("Dialog/AddCustomIme/NameLabel") });
+        panel.Children.Add(nameBox);
+        panel.Children.Add(new TextBlock { Text = SR("Dialog/AddCustomIme/CategoryLabel") });
+        panel.Children.Add(categoryCombo);
+
+        return new ContentDialog
+        {
+            Title = SR("Dialog/AddCustomIme/Title"),
+            Content = panel,
+            PrimaryButtonText = SR("Dialog/AddCustomIme/PrimaryButton"),
+            CloseButtonText = SR("Dialog/Common/Cancel"),
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot
+        };
+    }
+
+    private ContentDialog CreateConfirmDialog(string titleKey, string content, string primaryKey, bool primaryIsDefault = false)
+    {
+        return new ContentDialog
+        {
+            Title = SR(titleKey),
+            Content = content,
+            PrimaryButtonText = SR(primaryKey),
+            CloseButtonText = SR("Dialog/Common/Cancel"),
+            DefaultButton = primaryIsDefault ? ContentDialogButton.Primary : ContentDialogButton.Close,
+            XamlRoot = XamlRoot
+        };
     }
 
     private async void AddCustomImeButton_Click(object sender, RoutedEventArgs e)

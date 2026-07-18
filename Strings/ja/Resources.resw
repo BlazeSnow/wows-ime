@@ -379,4 +379,10 @@
   <data name="Settings/Restart/Close" xml:space="preserve">
     <value>後で</value>
   </data>
+  <data name="Step/Previous" xml:space="preserve">
+    <value>前へ</value>
+  </data>
+  <data name="Step/Next" xml:space="preserve">
+    <value>次へ</value>
+  </data>
 </root>
