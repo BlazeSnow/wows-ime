@@ -45,6 +45,8 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
         LoadInputMethods();
         LoadSavedCustomIme();
         suppressSettingsSave = false;
+        PrevButton.Content = SR("Step/Previous");
+        NextButton.Content = SR("Step/Next");
         UpdateStepVisibility();
     }
 

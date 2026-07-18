@@ -225,8 +225,8 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <Button x:Name="PrevButton" x:Uid="Step/Previous" Click="PrevButton_Click" Visibility="Collapsed" />
-            <Button x:Name="NextButton" Grid.Column="2" x:Uid="Step/Next" Click="NextButton_Click" Style="{StaticResource AccentButtonStyle}" />
+            <Button x:Name="PrevButton" Click="PrevButton_Click" Visibility="Collapsed" />
+            <Button x:Name="NextButton" Grid.Column="2" Click="NextButton_Click" Style="{StaticResource AccentButtonStyle}" />
         </Grid>
 
         <InfoBar Grid.Row="2" x:Name="StatusInfoBar" IsOpen="False" IsClosable="True" Margin="20,4,20,8" />
