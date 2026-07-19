@@ -194,19 +194,23 @@
             </toolkit:SettingsExpander>
 
             <!-- Step 3: Confirm & Write -->
-            <toolkit:SettingsCard
+            <toolkit:SettingsExpander
                 x:Name="ConfirmSection"
                 Grid.Row="0"
-                x:Uid="WriteConfigCard"
+                IsExpanded="True"
                 Visibility="Collapsed">
-                <toolkit:SettingsCard.HeaderIcon>
+                <toolkit:SettingsExpander.HeaderIcon>
                     <FontIcon Glyph="&#xE74E;" />
-                </toolkit:SettingsCard.HeaderIcon>
-                <toolkit:SettingsCard.Header>
+                </toolkit:SettingsExpander.HeaderIcon>
+                <toolkit:SettingsExpander.Header>
                     <TextBlock x:Uid="WriteConfigCardHeader" />
-                </toolkit:SettingsCard.Header>
-                <TextBlock x:Name="ConfirmSummary" TextWrapping="WrapWholeWords" Opacity="0.72" />
-            </toolkit:SettingsCard>
+                </toolkit:SettingsExpander.Header>
+                <toolkit:SettingsExpander.Items>
+                    <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
+                        <TextBlock x:Name="ConfirmSummary" TextWrapping="WrapWholeWords" Opacity="0.72" />
+                    </toolkit:SettingsCard>
+                </toolkit:SettingsExpander.Items>
+            </toolkit:SettingsExpander>
 
             <!-- Navigation Bar -->
             <toolkit:SettingsCard

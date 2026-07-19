@@ -58,7 +58,7 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
         ConfirmSection.Visibility = currentStep == TotalSteps ? Visibility.Visible : Visibility.Collapsed;
 
         PrevButton.Visibility = currentStep > 1 ? Visibility.Visible : Visibility.Collapsed;
-        NextButton.Visibility = currentStep < TotalSteps ? Visibility.Visible : Visibility.Collapsed;
+        NextButton.Content = currentStep == TotalSteps ? SR("WriteConfigButton/Content") : SR("Step/Next");
         StepProgressText.Text = SRF("Step/Progress", currentStep, TotalSteps);
 
         if (currentStep == TotalSteps)
@@ -91,6 +91,12 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
 
     private void NextButton_Click(object sender, RoutedEventArgs e)
     {
+        if (currentStep == TotalSteps)
+        {
+            WriteConfigButton_Click(sender, e);
+            return;
+        }
+
         if (currentStep == 1)
         {
             if (string.IsNullOrEmpty(GetSelectedGameRootPath()))
