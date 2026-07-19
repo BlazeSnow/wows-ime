@@ -7,13 +7,6 @@ public sealed partial class SettingsPage : Page
     private static readonly Uri ProjectWebsiteUri = new("https://www.blazesnow.com/wows/");
     private static readonly Uri ProjectRepositoryUri = new("https://github.com/BlazeSnow/wows-ime");
 
-    private static readonly Dictionary<string, (string Title, string Content, string Primary, string Close)> RestartStrings = new()
-    {
-        ["zh-Hans"] = ("重启应用", "语言更改将在重启后生效，是否立即重启？", "立即重启", "稍后"),
-        ["zh-Hant"] = ("重啟應用", "語言更改將在重啟後生效，是否立即重啟？", "立即重啟", "稍後"),
-        ["ja"]      = ("アプリの再起動", "言語の変更は再起動後に反映されます。今すぐ再起動しますか？", "今すぐ再起動", "後で"),
-    };
-
     private bool suppressSelectionChange;
 
     public string AppVersionText { get; } = GetPackageVersionText();
@@ -28,7 +21,7 @@ public sealed partial class SettingsPage : Page
     private void ApplyLocalization()
     {
         LanguageCard.Header = new TextBlock { Text = SR("Settings/LanguageLabel") };
-        AutomaticLanguageItem.Content = "自动";
+        AutomaticLanguageItem.Content = SR("Settings/Automatic");
 
         ProjectWebsiteCard.Header = new TextBlock { Text = SR("ProjectWebsiteCardHeader/Text") };
         ProjectWebsiteCard.Description = "https://www.blazesnow.com/wows/";
@@ -72,35 +65,22 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        var restart = await ShowLanguageRestartDialogAsync(tag);
-        if (!restart)
-        {
-            SelectLanguage(current.Length > 0 ? current : null);
-            return;
-        }
-
         Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = tag;
-        RestartApp();
+
+        if (await ShowLanguageRestartDialogAsync())
+        {
+            RestartApp();
+        }
     }
 
-    private async Task<bool> ShowLanguageRestartDialogAsync(string languageTag)
+    private async Task<bool> ShowLanguageRestartDialogAsync()
     {
-        var title = "重启应用";
-        var content = "语言更改将在重启后生效，是否立即重启？";
-        var primary = "立即重启";
-        var close = "稍后";
-
-        if (RestartStrings.TryGetValue(languageTag, out var strings))
-        {
-            (title, content, primary, close) = strings;
-        }
-
         var dialog = new ContentDialog
         {
-            Title = title,
-            Content = content,
-            PrimaryButtonText = primary,
-            CloseButtonText = close,
+            Title = SR("Settings/Restart/Title"),
+            Content = SR("Settings/Restart/Content"),
+            PrimaryButtonText = SR("Settings/Restart/Primary"),
+            CloseButtonText = SR("Settings/Restart/Close"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot
         };

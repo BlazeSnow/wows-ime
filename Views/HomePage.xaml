@@ -219,15 +219,17 @@
         </ScrollViewer>
 
         <!-- Navigation Bar -->
-        <Grid Grid.Row="1" Margin="20,8,20,0" ColumnSpacing="8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Button x:Name="PrevButton" Click="PrevButton_Click" Visibility="Collapsed" />
-            <Button x:Name="NextButton" Grid.Column="2" Click="NextButton_Click" Style="{StaticResource AccentButtonStyle}" />
-        </Grid>
+        <toolkit:SettingsCard Grid.Row="1" Margin="20,8,20,0">
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button x:Name="PrevButton" Click="PrevButton_Click" Visibility="Collapsed" />
+                <Button x:Name="NextButton" Grid.Column="2" Click="NextButton_Click" Style="{StaticResource AccentButtonStyle}" />
+            </Grid>
+        </toolkit:SettingsCard>
 
         <InfoBar Grid.Row="2" x:Name="StatusInfoBar" IsOpen="False" IsClosable="True" Margin="20,4,20,8" />
     </Grid>
