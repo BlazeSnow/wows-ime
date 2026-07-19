@@ -14,6 +14,7 @@ internal static class SettingsPersistence
 {
     private const int CurrentSchemaVersion = 1;
     private const string SchemaVersionKey = "Settings.SchemaVersion";
+    private const string SelectedLanguageKey = "Settings.Language";
     private const string SelectedGamePathKey = "Game.SelectedPath";
     private const string LegacyConfigFileName = "config.json";
     private const string MigratedLegacyConfigFileName = "config.json.migrated";
@@ -49,6 +50,55 @@ internal static class SettingsPersistence
         catch
         {
             // Keep the app usable even when the local database cannot be initialized.
+        }
+    }
+
+    internal static string? LoadSelectedLanguage()
+    {
+        try
+        {
+            return ApplicationData.Current.LocalSettings.Values.TryGetValue(SelectedLanguageKey, out var value) &&
+                   value is string language &&
+                   IsSupportedLanguage(language)
+                ? language
+                : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    internal static void SaveSelectedLanguage(string language)
+    {
+        try
+        {
+            ApplicationData.Current.LocalSettings.Values[SelectedLanguageKey] = IsSupportedLanguage(language) ? language : "auto";
+        }
+        catch
+        {
+            // Keep failures silent to avoid breaking the settings workflow.
+        }
+    }
+
+    internal static void ApplySelectedLanguage()
+    {
+        try
+        {
+            var language = LoadSelectedLanguage();
+            if (language is null)
+            {
+                var legacyLanguage = Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride?.Trim();
+                string migratedLanguage = IsSupportedLanguage(legacyLanguage) && legacyLanguage != "auto" ? legacyLanguage! : "auto";
+                SaveSelectedLanguage(migratedLanguage);
+                language = migratedLanguage;
+            }
+
+            Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = language == "auto" ? string.Empty : language;
+        }
+        catch
+        {
+            // Keep the app usable even when the language preference cannot be applied.
         }
     }
 
@@ -471,6 +521,8 @@ internal static class SettingsPersistence
         "Japanese" => nameof(ImeCategory.Japanese),
         _ => nameof(ImeCategory.ChineseSimplified)
     };
+
+    private static bool IsSupportedLanguage(string? language) => language is "auto" or "zh-Hans" or "zh-Hant" or "ja";
 
     private static string? ReadString(JsonElement element, string propertyName)
     {

@@ -6,6 +6,7 @@ using Windows.ApplicationModel.Resources;
 using Windows.Storage;
 using Windows.UI.ViewManagement;
 using WinRT.Interop;
+using wows_ime.Services;
 
 namespace wows_ime
 {
@@ -26,6 +27,8 @@ namespace wows_ime
 
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
+            SettingsPersistence.ApplySelectedLanguage();
+
             window ??= new Window();
             MainWindow = window;
             window.Title = SR("App/Title");

@@ -15,7 +15,7 @@ public sealed partial class SettingsPage : Page
     {
         InitializeComponent();
         ApplyLocalization();
-        SelectLanguage(GetSavedLanguage());
+        SelectLanguage(SettingsPersistence.LoadSelectedLanguage() ?? "auto");
     }
 
     private void ApplyLocalization()
@@ -47,11 +47,6 @@ public sealed partial class SettingsPage : Page
         suppressSelectionChange = false;
     }
 
-    private static string? GetSavedLanguage()
-    {
-        return Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride?.Trim() is { Length: > 0 } lang ? lang : null;
-    }
-
     private async void OnLanguageSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (suppressSelectionChange || LanguageComboBox.SelectedItem is not ComboBoxItem { Tag: string tag })
@@ -59,15 +54,16 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        var current = GetSavedLanguage() ?? "";
-        if (tag == current)
+        if (tag == (SettingsPersistence.LoadSelectedLanguage() ?? "auto"))
         {
             return;
         }
 
-        Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = tag;
+        var restart = await ShowLanguageRestartDialogAsync();
+        SettingsPersistence.SaveSelectedLanguage(tag);
+        Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = tag == "auto" ? string.Empty : tag;
 
-        if (await ShowLanguageRestartDialogAsync())
+        if (restart)
         {
             RestartApp();
         }
