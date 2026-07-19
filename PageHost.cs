@@ -1,8 +1,6 @@
 using System.Globalization;
-using Microsoft.UI.Xaml;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Resources;
-using Windows.Storage;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 using wows_ime.Core.Abstractions;

@@ -244,7 +244,12 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
 
     private ContentDialog CreateConfirmDialog(string titleKey, string content, string primaryKey, bool primaryIsDefault = false) => new()
     {
-        Title = SR(titleKey), Content = content, PrimaryButtonText = SR(primaryKey), CloseButtonText = SR("Dialog/Common/Cancel"), DefaultButton = primaryIsDefault ? ContentDialogButton.Primary : ContentDialogButton.Close, XamlRoot = XamlRoot
+        Title = SR(titleKey),
+        Content = content,
+        PrimaryButtonText = SR(primaryKey),
+        CloseButtonText = SR("Dialog/Common/Cancel"),
+        DefaultButton = primaryIsDefault ? ContentDialogButton.Primary : ContentDialogButton.Close,
+        XamlRoot = XamlRoot
     };
 
     private async void AddCustomImeButton_Click(object sender, RoutedEventArgs e)
