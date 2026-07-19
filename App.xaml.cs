@@ -6,8 +6,8 @@ using Windows.ApplicationModel.Resources;
 using Windows.Storage;
 using Windows.UI.ViewManagement;
 using WinRT.Interop;
-using wows_ime.Pages.Views;
 using wows_ime.Core.Infrastructure;
+using wows_ime.Pages.Views;
 
 namespace wows_ime
 {

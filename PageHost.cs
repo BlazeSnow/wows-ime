@@ -4,11 +4,11 @@ using Windows.ApplicationModel.Resources;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 using wows_ime.Core.Abstractions;
+using wows_ime.Core.Infrastructure;
 using wows_ime.Core.Models;
 using wows_ime.Core.Rules;
 using wows_ime.Core.Services;
 using wows_ime.Pages.Abstractions;
-using wows_ime.Core.Infrastructure;
 using ModernResourceManager = Microsoft.Windows.ApplicationModel.Resources.ResourceManager;
 
 namespace wows_ime;
