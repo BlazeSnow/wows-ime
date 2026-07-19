@@ -216,9 +216,26 @@
                         <TextBlock x:Uid="ConfirmImeSectionHeader" />
                     </toolkit:SettingsExpander.Header>
                     <toolkit:SettingsExpander.Items>
-                        <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
-                            <TextBlock x:Name="ConfirmSelectedImeList" TextWrapping="WrapWholeWords" Opacity="0.72" />
-                        </toolkit:SettingsCard>
+                        <ItemsRepeater
+                            ItemsSource="{x:Bind ConfirmSelectedInputMethods, Mode=OneWay}"
+                            HorizontalAlignment="Stretch">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="0" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="local:InputMethodItem">
+                                    <toolkit:SettingsCard HorizontalAlignment="Stretch">
+                                        <toolkit:SettingsCard.HeaderIcon>
+                                            <FontIcon FontFamily="Segoe UI" Glyph="{x:Bind ConfirmationNumberText}" />
+                                        </toolkit:SettingsCard.HeaderIcon>
+                                        <toolkit:SettingsCard.Header>
+                                            <TextBlock Text="{x:Bind DisplayName}" />
+                                        </toolkit:SettingsCard.Header>
+                                        <TextBlock Text="{x:Bind CategoryDisplayName}" Opacity="0.72" />
+                                    </toolkit:SettingsCard>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
                     </toolkit:SettingsExpander.Items>
                 </toolkit:SettingsExpander>
             </StackPanel>

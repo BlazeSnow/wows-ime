@@ -21,6 +21,7 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ObservableCollection<InputMethodItem> InputMethods { get; } = new();
+    public ObservableCollection<InputMethodItem> ConfirmSelectedInputMethods { get; } = new();
     public ObservableCollection<GamePathOption> GamePathOptions { get; } = new();
     public string CurrentSelectedGamePathText
     {
@@ -71,8 +72,13 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
     {
         ConfirmGameRootPath.Text = GamePathOptions.FirstOrDefault(o => o.IsSelected)?.Path ?? SR("Status/GameRootInvalid");
 
-        var imeList = string.Join("\n", InputMethods.Where(i => i.IsSelected).Select(i => $"• {i.DisplayName}"));
-        ConfirmSelectedImeList.Text = string.IsNullOrEmpty(imeList) ? SR("Status/SelectAtLeastOneIme") : imeList;
+        ConfirmSelectedInputMethods.Clear();
+        var number = 1;
+        foreach (var item in InputMethods.Where(item => item.IsSelected))
+        {
+            item.ConfirmationNumber = number++;
+            ConfirmSelectedInputMethods.Add(item);
+        }
     }
 
     private void PrevButton_Click(object sender, RoutedEventArgs e)

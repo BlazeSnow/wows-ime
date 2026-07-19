@@ -1,3 +1,5 @@
+using wows_ime.Services;
+
 namespace wows_ime.Views;
 
 public sealed class InputMethodItem : Microsoft.UI.Xaml.DependencyObject
@@ -12,6 +14,14 @@ public sealed class InputMethodItem : Microsoft.UI.Xaml.DependencyObject
 
     public string DisplayName { get; }
     public bool IsCustom { get; }
+    public int ConfirmationNumber { get; set; }
+    public string ConfirmationNumberText => ConfirmationNumber.ToString();
+    public string CategoryDisplayName => Category switch
+    {
+        ImeCategory.ChineseTraditional => AppResources.Get("Category/ChineseTraditional"),
+        ImeCategory.Japanese => AppResources.Get("Category/Japanese"),
+        _ => AppResources.Get("Category/ChineseSimplified")
+    };
     public Visibility DeleteButtonVisibility => IsCustom ? Visibility.Visible : Visibility.Collapsed;
 
     public bool IsSelected
