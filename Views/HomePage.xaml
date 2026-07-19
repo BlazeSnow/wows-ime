@@ -224,15 +224,35 @@
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="local:InputMethodItem">
-                                    <toolkit:SettingsCard HorizontalAlignment="Stretch">
-                                        <toolkit:SettingsCard.HeaderIcon>
-                                            <FontIcon FontFamily="Segoe UI" Glyph="{x:Bind ConfirmationNumberText}" />
-                                        </toolkit:SettingsCard.HeaderIcon>
-                                        <toolkit:SettingsCard.Header>
-                                            <TextBlock Text="{x:Bind DisplayName}" />
-                                        </toolkit:SettingsCard.Header>
-                                        <TextBlock Text="{x:Bind CategoryDisplayName}" Opacity="0.72" />
-                                    </toolkit:SettingsCard>
+                                    <Border
+                                        HorizontalAlignment="Stretch"
+                                        Padding="12,8"
+                                        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                        BorderThickness="0,0,0,1">
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="28" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Text="{x:Bind ConfirmationNumberText}"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                Text="{x:Bind DisplayName}"
+                                                TextTrimming="CharacterEllipsis" />
+                                            <TextBlock
+                                                Grid.Column="2"
+                                                VerticalAlignment="Center"
+                                                Text="{x:Bind CategoryDisplayName}"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                TextTrimming="CharacterEllipsis" />
+                                        </Grid>
+                                    </Border>
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
