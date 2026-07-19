@@ -6,7 +6,8 @@ using Windows.ApplicationModel.Resources;
 using Windows.Storage;
 using Windows.UI.ViewManagement;
 using WinRT.Interop;
-using wows_ime.Services;
+using wows_ime.Pages.Views;
+using wows_ime.Windows;
 
 namespace wows_ime
 {
@@ -14,12 +15,13 @@ namespace wows_ime
     {
         private Window window = Window.Current;
         private UISettings? uiSettings;
+        private readonly SettingsPersistence settings = new();
         private static readonly ResourceLoader ResourceLoader = new();
         public static Window? MainWindow { get; private set; }
 
         public App()
         {
-            SettingsPersistence.ApplySelectedLanguage();
+            settings.ApplyLanguageMode();
             this.InitializeComponent();
             this.UnhandledException += App_UnhandledException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -34,7 +36,8 @@ namespace wows_ime
             window.SystemBackdrop = new MicaBackdrop();
             SetWindowIcon(window);
 
-            var shell = new Shell();
+            settings.Initialize();
+            var shell = new Shell(new PageHost(window, settings));
             window.ExtendsContentIntoTitleBar = true;
             window.Content = shell;
             window.SetTitleBar(shell.AppTitleBar);
@@ -115,20 +118,20 @@ namespace wows_ime
             }
 
             var foreground = isDark
-                ? Windows.UI.Color.FromArgb(255, 255, 255, 255)
-                : Windows.UI.Color.FromArgb(255, 0, 0, 0);
+                ? global::Windows.UI.Color.FromArgb(255, 255, 255, 255)
+                : global::Windows.UI.Color.FromArgb(255, 0, 0, 0);
             var inactiveForeground = isDark
-                ? Windows.UI.Color.FromArgb(160, 255, 255, 255)
-                : Windows.UI.Color.FromArgb(160, 0, 0, 0);
+                ? global::Windows.UI.Color.FromArgb(160, 255, 255, 255)
+                : global::Windows.UI.Color.FromArgb(160, 0, 0, 0);
             var hoverBackground = isDark
-                ? Windows.UI.Color.FromArgb(32, 255, 255, 255)
-                : Windows.UI.Color.FromArgb(24, 0, 0, 0);
+                ? global::Windows.UI.Color.FromArgb(32, 255, 255, 255)
+                : global::Windows.UI.Color.FromArgb(24, 0, 0, 0);
             var pressedBackground = isDark
-                ? Windows.UI.Color.FromArgb(48, 255, 255, 255)
-                : Windows.UI.Color.FromArgb(36, 0, 0, 0);
+                ? global::Windows.UI.Color.FromArgb(48, 255, 255, 255)
+                : global::Windows.UI.Color.FromArgb(36, 0, 0, 0);
 
-            appWindow.TitleBar.ButtonBackgroundColor = Windows.UI.Color.FromArgb(0, 0, 0, 0);
-            appWindow.TitleBar.ButtonInactiveBackgroundColor = Windows.UI.Color.FromArgb(0, 0, 0, 0);
+            appWindow.TitleBar.ButtonBackgroundColor = global::Windows.UI.Color.FromArgb(0, 0, 0, 0);
+            appWindow.TitleBar.ButtonInactiveBackgroundColor = global::Windows.UI.Color.FromArgb(0, 0, 0, 0);
             appWindow.TitleBar.ButtonHoverBackgroundColor = hoverBackground;
             appWindow.TitleBar.ButtonPressedBackgroundColor = pressedBackground;
             appWindow.TitleBar.ButtonForegroundColor = foreground;

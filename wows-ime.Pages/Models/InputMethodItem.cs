@@ -1,12 +1,20 @@
-using wows_ime.Services;
+using wows_ime.Core.Models;
+using wows_ime.Pages.Abstractions;
 
-namespace wows_ime.Views;
+namespace wows_ime.Pages.Models;
 
 public sealed class InputMethodItem : Microsoft.UI.Xaml.DependencyObject
 {
-    public InputMethodItem(string displayName, ImeCategory initialCategory = ImeCategory.ChineseSimplified, bool isCustom = false)
+    private readonly IPageLocalization localization;
+
+    public InputMethodItem(
+        string displayName,
+        IPageLocalization localization,
+        ImeCategory initialCategory = ImeCategory.ChineseSimplified,
+        bool isCustom = false)
     {
         DisplayName = displayName;
+        this.localization = localization;
         Category = initialCategory;
         CategoryIndex = (int)initialCategory;
         IsCustom = isCustom;
@@ -18,9 +26,9 @@ public sealed class InputMethodItem : Microsoft.UI.Xaml.DependencyObject
     public string ConfirmationNumberText => ConfirmationNumber.ToString();
     public string CategoryDisplayName => Category switch
     {
-        ImeCategory.ChineseTraditional => AppResources.Get("Category/ChineseTraditional"),
-        ImeCategory.Japanese => AppResources.Get("Category/Japanese"),
-        _ => AppResources.Get("Category/ChineseSimplified")
+        ImeCategory.ChineseTraditional => localization.GetString("Category/ChineseTraditional"),
+        ImeCategory.Japanese => localization.GetString("Category/Japanese"),
+        _ => localization.GetString("Category/ChineseSimplified")
     };
     public Visibility DeleteButtonVisibility => IsCustom ? Visibility.Visible : Visibility.Collapsed;
 

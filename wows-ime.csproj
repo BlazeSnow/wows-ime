@@ -23,6 +23,9 @@
         <Platforms>ARM64;x64;x86</Platforms>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+        <RuntimeIdentifier Condition="'$(Platform)' == 'x64'">win-x64</RuntimeIdentifier>
+        <RuntimeIdentifier Condition="'$(Platform)' == 'x86'">win-x86</RuntimeIdentifier>
+        <RuntimeIdentifier Condition="'$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
         <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
         <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
         <PackageReleaseNotes>更新日志见：https://github.com/BlazeSnow/wows-ime/blob/main/CHANGELOG.md</PackageReleaseNotes>
@@ -89,6 +92,22 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="wows-ime.Core\wows-ime.Core.csproj" />
+        <ProjectReference Include="wows-ime.Windows\wows-ime.Windows.csproj" />
+        <ProjectReference Include="wows-ime.Pages\wows-ime.Pages.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Remove="wows-ime.Core\**\*.cs" />
+        <Compile Remove="wows-ime.Windows\**\*.cs" />
+        <Compile Remove="wows-ime.Pages\**\*.cs" />
+        <Page Remove="wows-ime.Pages\**\*.xaml" />
+        <EmbeddedResource Remove="wows-ime.Core\**\*" />
+        <EmbeddedResource Remove="wows-ime.Windows\**\*" />
+        <EmbeddedResource Remove="wows-ime.Pages\**\*" />
+        <None Remove="wows-ime.Core\**\*" />
+        <None Remove="wows-ime.Windows\**\*" />
+        <None Remove="wows-ime.Pages\**\*" />
         <None Remove="wows-ime.slnx" />
     </ItemGroup>
 
@@ -97,8 +116,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
-        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.10" />
         <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.3.1" />
         <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2270" />
 
