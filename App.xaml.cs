@@ -19,6 +19,7 @@ namespace wows_ime
 
         public App()
         {
+            SettingsPersistence.ApplySelectedLanguage();
             this.InitializeComponent();
             this.UnhandledException += App_UnhandledException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -27,8 +28,6 @@ namespace wows_ime
 
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
-            SettingsPersistence.ApplySelectedLanguage();
-
             window ??= new Window();
             MainWindow = window;
             window.Title = SR("App/Title");
