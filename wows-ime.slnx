@@ -5,7 +5,6 @@
         <Platform Name="x86" />
     </Configurations>
     <Project Path="wows-ime.Core\wows-ime.Core.csproj" />
-    <Project Path="wows-ime.Windows\wows-ime.Windows.csproj" />
     <Project Path="wows-ime.Pages\wows-ime.Pages.csproj" />
     <Project Path="wows-ime.csproj">
         <Platform Solution="*|ARM64" Project="ARM64" />

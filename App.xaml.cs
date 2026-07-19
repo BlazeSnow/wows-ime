@@ -7,7 +7,7 @@ using Windows.Storage;
 using Windows.UI.ViewManagement;
 using WinRT.Interop;
 using wows_ime.Pages.Views;
-using wows_ime.Windows;
+using wows_ime.Core.Infrastructure;
 
 namespace wows_ime
 {

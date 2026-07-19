@@ -93,20 +93,16 @@
 
     <ItemGroup>
         <ProjectReference Include="wows-ime.Core\wows-ime.Core.csproj" />
-        <ProjectReference Include="wows-ime.Windows\wows-ime.Windows.csproj" />
         <ProjectReference Include="wows-ime.Pages\wows-ime.Pages.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <Compile Remove="wows-ime.Core\**\*.cs" />
-        <Compile Remove="wows-ime.Windows\**\*.cs" />
         <Compile Remove="wows-ime.Pages\**\*.cs" />
         <Page Remove="wows-ime.Pages\**\*.xaml" />
         <EmbeddedResource Remove="wows-ime.Core\**\*" />
-        <EmbeddedResource Remove="wows-ime.Windows\**\*" />
         <EmbeddedResource Remove="wows-ime.Pages\**\*" />
         <None Remove="wows-ime.Core\**\*" />
-        <None Remove="wows-ime.Windows\**\*" />
         <None Remove="wows-ime.Pages\**\*" />
         <None Remove="wows-ime.slnx" />
     </ItemGroup>

@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 using wows_ime.Core.Abstractions;
 using wows_ime.Core.Models;
 
-namespace wows_ime.Windows;
+namespace wows_ime.Core.Infrastructure;
 
 public sealed class InputMethodScanner : IInputMethodScanner
 {
