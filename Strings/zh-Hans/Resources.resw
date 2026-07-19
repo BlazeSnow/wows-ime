@@ -386,7 +386,7 @@
     <value>稍后</value>
   </data>
   <data name="Step/Progress" xml:space="preserve">
-    <value>第{0}步，共{1}步</value>
+    <value>第 {0} 步，共 {1} 步</value>
   </data>
   <data name="Step/Previous" xml:space="preserve">
     <value>上一步</value>
