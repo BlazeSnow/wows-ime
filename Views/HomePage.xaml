@@ -207,8 +207,24 @@
                 </toolkit:SettingsExpander.Header>
                 <toolkit:SettingsExpander.Items>
                     <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
-                        <TextBlock x:Name="ConfirmSummary" TextWrapping="WrapWholeWords" Opacity="0.72" />
+                        <toolkit:SettingsCard.Header>
+                            <TextBlock x:Uid="GameRootLabel" />
+                        </toolkit:SettingsCard.Header>
+                        <TextBlock x:Name="ConfirmGameRootPath" TextWrapping="WrapWholeWords" Opacity="0.72" />
                     </toolkit:SettingsCard>
+                    <toolkit:SettingsExpander IsExpanded="True">
+                        <toolkit:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE765;" />
+                        </toolkit:SettingsExpander.HeaderIcon>
+                        <toolkit:SettingsExpander.Header>
+                            <TextBlock x:Uid="ConfirmImeSectionHeader" />
+                        </toolkit:SettingsExpander.Header>
+                        <toolkit:SettingsExpander.Items>
+                            <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
+                                <TextBlock x:Name="ConfirmSelectedImeList" TextWrapping="WrapWholeWords" Opacity="0.72" />
+                            </toolkit:SettingsCard>
+                        </toolkit:SettingsExpander.Items>
+                    </toolkit:SettingsExpander>
                 </toolkit:SettingsExpander.Items>
             </toolkit:SettingsExpander>
 

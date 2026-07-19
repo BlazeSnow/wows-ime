@@ -69,15 +69,10 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
 
     private void UpdateConfirmSummary()
     {
-        var path = GamePathOptions.FirstOrDefault(o => o.IsSelected)?.DisplayName ?? SR("Status/GameRootInvalid");
-        var imeCount = InputMethods.Count(i => i.IsSelected);
-        var imeList = string.Join("\n", InputMethods.Where(i => i.IsSelected).Select(i => $"• {i.DisplayName}"));
-        if (string.IsNullOrEmpty(imeList))
-        {
-            imeList = SR("Status/SelectAtLeastOneIme");
-        }
+        ConfirmGameRootPath.Text = GamePathOptions.FirstOrDefault(o => o.IsSelected)?.Path ?? SR("Status/GameRootInvalid");
 
-        ConfirmSummary.Text = $"游戏路径: {path}\n\n已选输入法 ({imeCount}):\n{imeList}";
+        var imeList = string.Join("\n", InputMethods.Where(i => i.IsSelected).Select(i => $"• {i.DisplayName}"));
+        ConfirmSelectedImeList.Text = string.IsNullOrEmpty(imeList) ? SR("Status/SelectAtLeastOneIme") : imeList;
     }
 
     private void PrevButton_Click(object sender, RoutedEventArgs e)

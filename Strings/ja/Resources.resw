@@ -144,6 +144,9 @@
   <data name="ImeSectionTitle.Text" xml:space="preserve">
     <value>検出されたIME</value>
   </data>
+  <data name="ConfirmImeSectionHeader.Text" xml:space="preserve">
+    <value>選択したIME</value>
+  </data>
   <data name="AddCustomImeButton.Content" xml:space="preserve">
     <value>カスタムIME名</value>
   </data>

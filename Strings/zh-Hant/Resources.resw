@@ -144,6 +144,9 @@
   <data name="ImeSectionTitle.Text" xml:space="preserve">
     <value>偵測到的輸入法</value>
   </data>
+  <data name="ConfirmImeSectionHeader.Text" xml:space="preserve">
+    <value>已選輸入法</value>
+  </data>
   <data name="AddCustomImeButton.Content" xml:space="preserve">
     <value>自訂輸入法名稱</value>
   </data>
