@@ -194,39 +194,34 @@
             </toolkit:SettingsExpander>
 
             <!-- Step 3: Confirm & Write -->
-            <toolkit:SettingsExpander
+            <StackPanel
                 x:Name="ConfirmSection"
                 Grid.Row="0"
-                IsExpanded="True"
+                Spacing="8"
                 Visibility="Collapsed">
-                <toolkit:SettingsExpander.HeaderIcon>
-                    <FontIcon Glyph="&#xE74E;" />
-                </toolkit:SettingsExpander.HeaderIcon>
-                <toolkit:SettingsExpander.Header>
-                    <TextBlock x:Uid="WriteConfigCardHeader" />
-                </toolkit:SettingsExpander.Header>
-                <toolkit:SettingsExpander.Items>
-                    <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
-                        <toolkit:SettingsCard.Header>
-                            <TextBlock x:Uid="GameRootLabel" />
-                        </toolkit:SettingsCard.Header>
-                        <TextBlock x:Name="ConfirmGameRootPath" TextWrapping="WrapWholeWords" Opacity="0.72" />
-                    </toolkit:SettingsCard>
-                    <toolkit:SettingsExpander IsExpanded="True">
-                        <toolkit:SettingsExpander.HeaderIcon>
-                            <FontIcon Glyph="&#xE765;" />
-                        </toolkit:SettingsExpander.HeaderIcon>
-                        <toolkit:SettingsExpander.Header>
-                            <TextBlock x:Uid="ConfirmImeSectionHeader" />
-                        </toolkit:SettingsExpander.Header>
-                        <toolkit:SettingsExpander.Items>
-                            <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
-                                <TextBlock x:Name="ConfirmSelectedImeList" TextWrapping="WrapWholeWords" Opacity="0.72" />
-                            </toolkit:SettingsCard>
-                        </toolkit:SettingsExpander.Items>
-                    </toolkit:SettingsExpander>
-                </toolkit:SettingsExpander.Items>
-            </toolkit:SettingsExpander>
+                <toolkit:SettingsCard>
+                    <toolkit:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xE8B7;" />
+                    </toolkit:SettingsCard.HeaderIcon>
+                    <toolkit:SettingsCard.Header>
+                        <TextBlock x:Uid="GameRootLabel" />
+                    </toolkit:SettingsCard.Header>
+                    <TextBlock x:Name="ConfirmGameRootPath" TextWrapping="WrapWholeWords" Opacity="0.72" />
+                </toolkit:SettingsCard>
+                <toolkit:SettingsExpander IsExpanded="True">
+                    <toolkit:SettingsExpander.HeaderIcon>
+                        <FontIcon Glyph="&#xE765;" />
+                    </toolkit:SettingsExpander.HeaderIcon>
+                    <toolkit:SettingsExpander.Header>
+                        <TextBlock x:Uid="ConfirmImeSectionHeader" />
+                    </toolkit:SettingsExpander.Header>
+                    <toolkit:SettingsExpander.Items>
+                        <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
+                            <TextBlock x:Name="ConfirmSelectedImeList" TextWrapping="WrapWholeWords" Opacity="0.72" />
+                        </toolkit:SettingsCard>
+                    </toolkit:SettingsExpander.Items>
+                </toolkit:SettingsExpander>
+            </StackPanel>
 
             <!-- Navigation Bar -->
             <toolkit:SettingsCard
