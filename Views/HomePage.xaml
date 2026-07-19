@@ -9,19 +9,11 @@
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d">
 
-    <Grid Background="Transparent">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-
-        <ScrollViewer
-            Grid.Row="0"
-            VerticalScrollMode="Enabled"
-            VerticalScrollBarVisibility="Auto"
-            HorizontalScrollMode="Disabled"
-            HorizontalScrollBarVisibility="Disabled">
+    <ScrollViewer
+        VerticalScrollMode="Enabled"
+        VerticalScrollBarVisibility="Auto"
+        HorizontalScrollMode="Disabled"
+        HorizontalScrollBarVisibility="Disabled">
         <Grid Padding="20" RowSpacing="8" Background="Transparent">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -120,7 +112,7 @@
             </toolkit:SettingsExpander>
 
             <!-- Step 2: IME Selection -->
-            <toolkit:SettingsExpander x:Name="ImeSection" Grid.Row="1" IsExpanded="True" VerticalAlignment="Stretch" Visibility="Collapsed">
+            <toolkit:SettingsExpander x:Name="ImeSection" Grid.Row="0" IsExpanded="True" VerticalAlignment="Stretch" Visibility="Collapsed">
                 <toolkit:SettingsExpander.HeaderIcon>
                     <FontIcon Glyph="&#xE765;" />
                 </toolkit:SettingsExpander.HeaderIcon>
@@ -204,7 +196,7 @@
             <!-- Step 3: Confirm & Write -->
             <toolkit:SettingsCard
                 x:Name="ConfirmSection"
-                Grid.Row="2"
+                Grid.Row="0"
                 x:Uid="WriteConfigCard"
                 Visibility="Collapsed">
                 <toolkit:SettingsCard.HeaderIcon>
@@ -215,22 +207,27 @@
                 </toolkit:SettingsCard.Header>
                 <TextBlock x:Name="ConfirmSummary" TextWrapping="WrapWholeWords" Opacity="0.72" />
             </toolkit:SettingsCard>
+
+            <!-- Navigation Bar -->
+            <toolkit:SettingsCard Grid.Row="1">
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="PrevButton" Click="PrevButton_Click" Visibility="Collapsed" />
+                    <TextBlock
+                        x:Name="StepProgressText"
+                        Grid.Column="1"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Opacity="0.72" />
+                    <Button x:Name="NextButton" Grid.Column="2" Click="NextButton_Click" Style="{StaticResource AccentButtonStyle}" />
+                </Grid>
+            </toolkit:SettingsCard>
+
+            <InfoBar Grid.Row="2" x:Name="StatusInfoBar" IsOpen="False" IsClosable="True" />
         </Grid>
-        </ScrollViewer>
-
-        <!-- Navigation Bar -->
-        <toolkit:SettingsCard Grid.Row="1" Margin="20,8,20,0">
-            <Grid ColumnSpacing="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <Button x:Name="PrevButton" Click="PrevButton_Click" Visibility="Collapsed" />
-                <Button x:Name="NextButton" Grid.Column="2" Click="NextButton_Click" Style="{StaticResource AccentButtonStyle}" />
-            </Grid>
-        </toolkit:SettingsCard>
-
-        <InfoBar Grid.Row="2" x:Name="StatusInfoBar" IsOpen="False" IsClosable="True" Margin="20,4,20,8" />
-    </Grid>
+    </ScrollViewer>
 </Page>

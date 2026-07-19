@@ -13,6 +13,7 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
     private const string SteamDefaultPath = @"C:\Program Files (x86)\Steam\steamapps\common\World of Warships";
     private const string LestaDefaultPath = @"C:\Games\Korabli";
     private const string Cn360DefaultPath = @"C:\Games\World_of_Warships_CN360";
+    private const int TotalSteps = 3;
     private string? lastScanWarning;
     private bool suppressSettingsSave;
     private int currentStep = 1;
@@ -54,12 +55,13 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
     {
         GamePathSection.Visibility = currentStep == 1 ? Visibility.Visible : Visibility.Collapsed;
         ImeSection.Visibility = currentStep == 2 ? Visibility.Visible : Visibility.Collapsed;
-        ConfirmSection.Visibility = currentStep == 3 ? Visibility.Visible : Visibility.Collapsed;
+        ConfirmSection.Visibility = currentStep == TotalSteps ? Visibility.Visible : Visibility.Collapsed;
 
         PrevButton.Visibility = currentStep > 1 ? Visibility.Visible : Visibility.Collapsed;
-        NextButton.Visibility = currentStep < 3 ? Visibility.Visible : Visibility.Collapsed;
+        NextButton.Visibility = currentStep < TotalSteps ? Visibility.Visible : Visibility.Collapsed;
+        StepProgressText.Text = SRF("Step/Progress", currentStep, TotalSteps);
 
-        if (currentStep == 3)
+        if (currentStep == TotalSteps)
         {
             UpdateConfirmSummary();
         }
@@ -107,7 +109,7 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
             }
         }
 
-        if (currentStep < 3)
+        if (currentStep < TotalSteps)
         {
             currentStep++;
             UpdateStepVisibility();

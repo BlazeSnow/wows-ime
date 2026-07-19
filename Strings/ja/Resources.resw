@@ -382,6 +382,9 @@
   <data name="Settings/Restart/Close" xml:space="preserve">
     <value>後で</value>
   </data>
+  <data name="Step/Progress" xml:space="preserve">
+    <value>{1} ステップ中 {0} ステップ目</value>
+  </data>
   <data name="Step/Previous" xml:space="preserve">
     <value>前へ</value>
   </data>
