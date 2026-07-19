@@ -1,6 +1,5 @@
 using System.Text;
 using System.Xml.Linq;
-using wows_ime.Views;
 
 namespace wows_ime.Services;
 
