@@ -15,7 +15,6 @@ public sealed class InputMethodScanner : IInputMethodScanner
 
     private const uint CoinitApartmentThreaded = 0x2;
     private const uint ClsctxInprocServer = 0x1;
-    private const string WeixinImeName = "微信输入法";
 
     public InputMethodScanResult Scan()
     {
@@ -105,7 +104,7 @@ public sealed class InputMethodScanner : IInputMethodScanner
                                     continue;
                                 }
 
-                                name = NormalizeImeDisplayName(name);
+                                name = name.Trim();
                                 if (IsNoiseImeName(name))
                                 {
                                     continue;
@@ -196,12 +195,6 @@ public sealed class InputMethodScanner : IInputMethodScanner
     private static bool IsTargetLanguageProfile(ushort languageId) => languageId is
         0x0804 or 0x0404 or 0x0C04 or 0x1004 or 0x1404 or 0x0411;
 
-    private static string NormalizeImeDisplayName(string name) =>
-        name.Contains("wetype", StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(name, WeixinImeName, StringComparison.OrdinalIgnoreCase)
-            ? WeixinImeName
-            : name.Trim();
-
     private static bool IsNoiseImeName(string name) =>
         name.Contains("输入体验", StringComparison.OrdinalIgnoreCase) ||
         name.Contains("Input Experience", StringComparison.OrdinalIgnoreCase);
@@ -238,8 +231,7 @@ public sealed class InputMethodScanner : IInputMethodScanner
         }
 
         return name.Contains("拼音", StringComparison.OrdinalIgnoreCase) ||
-               name.Contains("五笔", StringComparison.OrdinalIgnoreCase) ||
-               name.Contains(WeixinImeName, StringComparison.OrdinalIgnoreCase)
+               name.Contains("五笔", StringComparison.OrdinalIgnoreCase)
             ? ImeCategory.ChineseSimplified
             : null;
     }
