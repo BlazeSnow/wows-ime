@@ -49,6 +49,7 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
         base.OnNavigatedTo(e);
         host = e.Parameter as IPageHost ?? throw new InvalidOperationException("HomePage requires an IPageHost navigation parameter.");
         suppressSettingsSave = true;
+        ApplyLocalization();
         LoadGamePathOptions();
         LoadInputMethods();
         LoadSavedCustomIme();
@@ -56,6 +57,21 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
         PrevButton.Content = SR("Step/Previous");
         NextButton.Content = SR("Step/Next");
         UpdateStepVisibility();
+    }
+
+    private void ApplyLocalization()
+    {
+        GameRootLabel.Text = SR("GameRootLabel/Text");
+        AddCustomGamePathButton.Content = SR("AddCustomGamePathButton/Content");
+        OpenFolderButton.Content = SR("OpenFolderButton/Content");
+        ImeSectionTitle.Text = SR("ImeSectionTitle/Text");
+        AddCustomImeButton.Content = SR("AddCustomImeButton/Content");
+        RefreshImeButton.Content = SR("RefreshImeButton/Content");
+        ImeTableHeaderName.Text = SR("ImeTableHeaderName/Text");
+        ImeTableHeaderCategory.Text = SR("ImeTableHeaderCategory/Text");
+        ImeTableHeaderAction.Text = SR("ImeTableHeaderAction/Text");
+        ConfirmGameRootLabel.Text = SR("GameRootLabel/Text");
+        ConfirmImeSectionHeader.Text = SR("ConfirmImeSectionHeader/Text");
     }
 
     private void UpdateStepVisibility()
@@ -140,7 +156,7 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
             displayName = path;
         }
 
-        var option = new GamePathOption(displayName, path, isCustom: true) { IsSelected = true };
+        var option = new GamePathOption(displayName, path, host.Localization, isCustom: true) { IsSelected = true };
         GamePathOptions.Add(option);
         SelectGamePath(option);
         ShowStatus(SR("Status/CustomGamePathAdded"), InfoBarSeverity.Success);
@@ -378,9 +394,9 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
     private void LoadGamePathOptions()
     {
         GamePathOptions.Clear();
-        GamePathOptions.Add(new GamePathOption(SR("GamePathOption/Steam"), SteamDefaultPath));
-        GamePathOptions.Add(new GamePathOption(SR("GamePathOption/Lesta"), LestaDefaultPath));
-        GamePathOptions.Add(new GamePathOption(SR("GamePathOption/Cn360"), Cn360DefaultPath));
+        GamePathOptions.Add(new GamePathOption(SR("GamePathOption/Steam"), SteamDefaultPath, host.Localization));
+        GamePathOptions.Add(new GamePathOption(SR("GamePathOption/Lesta"), LestaDefaultPath, host.Localization));
+        GamePathOptions.Add(new GamePathOption(SR("GamePathOption/Cn360"), Cn360DefaultPath, host.Localization));
         foreach (var customPath in host.Settings.LoadCustomGamePaths())
         {
             var path = customPath.Path?.Trim();
@@ -390,7 +406,7 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
             }
 
             var displayName = string.IsNullOrWhiteSpace(customPath.DisplayName) ? Path.GetFileName(path) : customPath.DisplayName;
-            GamePathOptions.Add(new GamePathOption(string.IsNullOrWhiteSpace(displayName) ? path : displayName, path, isCustom: true));
+            GamePathOptions.Add(new GamePathOption(string.IsNullOrWhiteSpace(displayName) ? path : displayName, path, host.Localization, isCustom: true));
         }
 
         var selected = GamePathOptions.FirstOrDefault(item => string.Equals(item.Path, host.Settings.LoadSelectedGamePath(), StringComparison.OrdinalIgnoreCase));

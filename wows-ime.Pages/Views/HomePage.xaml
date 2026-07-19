@@ -34,9 +34,9 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock x:Uid="GameRootLabel" VerticalAlignment="Center" />
-                        <Button x:Uid="AddCustomGamePathButton" Grid.Column="1" Click="AddCustomGamePathButton_Click" VerticalAlignment="Center" />
-                        <Button x:Uid="OpenFolderButton" Grid.Column="2" Click="OpenFolderButton_Click" VerticalAlignment="Center" />
+                        <TextBlock x:Name="GameRootLabel" VerticalAlignment="Center" />
+                        <Button x:Name="AddCustomGamePathButton" Grid.Column="1" Click="AddCustomGamePathButton_Click" VerticalAlignment="Center" />
+                        <Button x:Name="OpenFolderButton" Grid.Column="2" Click="OpenFolderButton_Click" VerticalAlignment="Center" />
                         <TextBlock
                             Grid.Column="3"
                             VerticalAlignment="Center"
@@ -80,8 +80,8 @@
                                                 TextWrapping="WrapWholeWords" />
                                         </StackPanel>
                                         <Button
-                                            x:Uid="DeleteCustomGamePathButtonTemplate"
                                             Grid.Column="2"
+                                            Content="{x:Bind DeleteButtonContent}"
                                             Click="DeleteCustomGamePathButton_Click"
                                             Tag="{x:Bind}"
                                             Visibility="{x:Bind DeleteButtonVisibility, Mode=OneWay}" />
@@ -106,9 +106,9 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock x:Uid="ImeSectionTitle" VerticalAlignment="Center" />
-                        <Button x:Uid="AddCustomImeButton" Grid.Column="1" Click="AddCustomImeButton_Click" />
-                        <Button x:Uid="RefreshImeButton" Grid.Column="2" Click="RefreshImeButton_Click" />
+                        <TextBlock x:Name="ImeSectionTitle" VerticalAlignment="Center" />
+                        <Button x:Name="AddCustomImeButton" Grid.Column="1" Click="AddCustomImeButton_Click" />
+                        <Button x:Name="RefreshImeButton" Grid.Column="2" Click="RefreshImeButton_Click" />
                     </Grid>
                 </toolkit:SettingsExpander.Header>
                 <toolkit:SettingsExpander.Items>
@@ -124,9 +124,9 @@
                             <ColumnDefinition Width="180" />
                             <ColumnDefinition Width="80" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock x:Uid="ImeTableHeaderName" Grid.Column="1" />
-                        <TextBlock x:Uid="ImeTableHeaderCategory" Grid.Column="2" />
-                        <TextBlock x:Uid="ImeTableHeaderAction" Grid.Column="3" />
+                        <TextBlock x:Name="ImeTableHeaderName" Grid.Column="1" />
+                        <TextBlock x:Name="ImeTableHeaderCategory" Grid.Column="2" />
+                        <TextBlock x:Name="ImeTableHeaderAction" Grid.Column="3" />
 
                         <ItemsRepeater
                             Grid.Row="1"
@@ -160,13 +160,13 @@
                                                 IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
                                             <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind DisplayName}" />
                                             <ComboBox Grid.Column="2" SelectedIndex="{x:Bind CategoryIndex, Mode=TwoWay}" SelectionChanged="ImeCategoryComboBox_SelectionChanged" Tag="{x:Bind}">
-                                                <ComboBoxItem x:Uid="ImeCategorySimplifiedItem" />
-                                                <ComboBoxItem x:Uid="ImeCategoryTraditionalItem" />
-                                                <ComboBoxItem x:Uid="ImeCategoryJapaneseItem" />
+                                                <ComboBoxItem Content="{x:Bind ChineseSimplifiedCategoryContent}" />
+                                                <ComboBoxItem Content="{x:Bind ChineseTraditionalCategoryContent}" />
+                                                <ComboBoxItem Content="{x:Bind JapaneseCategoryContent}" />
                                             </ComboBox>
                                             <Button
-                                                x:Uid="DeleteCustomImeButtonTemplate"
                                                 Grid.Column="3"
+                                                Content="{x:Bind DeleteButtonContent}"
                                                 Click="DeleteCustomImeButton_Click"
                                                 HorizontalAlignment="Stretch"
                                                 Tag="{x:Bind}"
@@ -192,7 +192,7 @@
                         <FontIcon Glyph="&#xE8B7;" />
                     </toolkit:SettingsCard.HeaderIcon>
                     <toolkit:SettingsCard.Header>
-                        <TextBlock x:Uid="GameRootLabel" />
+                        <TextBlock x:Name="ConfirmGameRootLabel" />
                     </toolkit:SettingsCard.Header>
                     <TextBlock x:Name="ConfirmGameRootPath" TextWrapping="WrapWholeWords" Opacity="0.72" />
                 </toolkit:SettingsCard>
@@ -201,7 +201,7 @@
                         <FontIcon Glyph="&#xE765;" />
                     </toolkit:SettingsExpander.HeaderIcon>
                     <toolkit:SettingsExpander.Header>
-                        <TextBlock x:Uid="ConfirmImeSectionHeader" />
+                        <TextBlock x:Name="ConfirmImeSectionHeader" />
                     </toolkit:SettingsExpander.Header>
                     <toolkit:SettingsExpander.Items>
                         <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">

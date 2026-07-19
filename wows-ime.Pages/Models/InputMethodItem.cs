@@ -24,6 +24,10 @@ public sealed class InputMethodItem : Microsoft.UI.Xaml.DependencyObject
     public bool IsCustom { get; }
     public int ConfirmationNumber { get; set; }
     public string ConfirmationNumberText => ConfirmationNumber.ToString();
+    public string DeleteButtonContent => localization.GetString("DeleteCustomImeButtonTemplate/Content");
+    public string ChineseSimplifiedCategoryContent => localization.GetString("ImeCategorySimplifiedItem/Content");
+    public string ChineseTraditionalCategoryContent => localization.GetString("ImeCategoryTraditionalItem/Content");
+    public string JapaneseCategoryContent => localization.GetString("ImeCategoryJapaneseItem/Content");
     public string CategoryDisplayName => Category switch
     {
         ImeCategory.ChineseTraditional => localization.GetString("Category/ChineseTraditional"),
