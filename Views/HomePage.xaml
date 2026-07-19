@@ -209,7 +209,7 @@
             </toolkit:SettingsCard>
 
             <!-- Navigation Bar -->
-            <toolkit:SettingsCard Grid.Row="1">
+            <toolkit:SettingsCard Grid.Row="1" HorizontalContentAlignment="Stretch">
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
