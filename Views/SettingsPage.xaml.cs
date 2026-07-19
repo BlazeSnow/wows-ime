@@ -59,7 +59,7 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        var restart = await ShowLanguageRestartDialogAsync(tag);
+        var restart = await ShowLanguageRestartDialogAsync(SettingsPersistence.ResolveLanguage(tag));
         SettingsPersistence.SaveSelectedLanguage(tag);
         Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = tag == "auto" ? string.Empty : tag;
 

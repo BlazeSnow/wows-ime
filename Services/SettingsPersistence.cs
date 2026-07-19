@@ -522,6 +522,60 @@ internal static class SettingsPersistence
         _ => nameof(ImeCategory.ChineseSimplified)
     };
 
+    internal static string ResolveLanguage(string? language)
+    {
+        if (language is "zh-Hans" or "zh-Hant" or "ja")
+        {
+            return language;
+        }
+
+        try
+        {
+            foreach (var preferredLanguage in Windows.System.UserProfile.GlobalizationPreferences.Languages)
+            {
+                if (IsSimplifiedChinese(preferredLanguage))
+                {
+                    return "zh-Hans";
+                }
+
+                if (IsTraditionalChinese(preferredLanguage))
+                {
+                    return "zh-Hant";
+                }
+
+                if (preferredLanguage.Equals("ja", StringComparison.OrdinalIgnoreCase) ||
+                    preferredLanguage.StartsWith("ja-", StringComparison.OrdinalIgnoreCase))
+                {
+                    return "ja";
+                }
+            }
+        }
+        catch
+        {
+            // Use the packaged default resource language when system preferences are unavailable.
+        }
+
+        return "zh-Hans";
+    }
+
+    private static bool IsSimplifiedChinese(string language) =>
+        language.Equals("zh-Hans", StringComparison.OrdinalIgnoreCase) ||
+        language.StartsWith("zh-Hans-", StringComparison.OrdinalIgnoreCase) ||
+        language.Equals("zh-CN", StringComparison.OrdinalIgnoreCase) ||
+        language.StartsWith("zh-CN-", StringComparison.OrdinalIgnoreCase) ||
+        language.Equals("zh-SG", StringComparison.OrdinalIgnoreCase) ||
+        language.StartsWith("zh-SG-", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsTraditionalChinese(string language) =>
+        language.Equals("zh-Hant", StringComparison.OrdinalIgnoreCase) ||
+        language.StartsWith("zh-Hant-", StringComparison.OrdinalIgnoreCase) ||
+        language.Equals("zh-TW", StringComparison.OrdinalIgnoreCase) ||
+        language.StartsWith("zh-TW-", StringComparison.OrdinalIgnoreCase) ||
+        language.Equals("zh-HK", StringComparison.OrdinalIgnoreCase) ||
+        language.StartsWith("zh-HK-", StringComparison.OrdinalIgnoreCase) ||
+        language.Equals("zh-MO", StringComparison.OrdinalIgnoreCase) ||
+        language.StartsWith("zh-MO-", StringComparison.OrdinalIgnoreCase);
+
     private static bool IsSupportedLanguage(string? language) => language is "auto" or "zh-Hans" or "zh-Hant" or "ja";
 
     private static string? ReadString(JsonElement element, string propertyName)
