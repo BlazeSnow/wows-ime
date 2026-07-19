@@ -1,25 +1,24 @@
+using Microsoft.Data.Sqlite;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Data.Sqlite;
 using Windows.Storage;
-using wows_ime.Views;
+using wows_ime.Core.Abstractions;
+using wows_ime.Core.Models;
+using wows_ime.Core.Rules;
 
-namespace wows_ime.Services;
+namespace wows_ime.Core.Infrastructure;
 
-internal sealed record PersistedGamePath(string DisplayName, string Path);
-
-internal sealed record PersistedInputMethod(string DisplayName, string Category);
-
-internal static class SettingsPersistence
+public sealed class SettingsPersistence : ISettingsRepository
 {
     private const int CurrentSchemaVersion = 1;
     private const string SchemaVersionKey = "Settings.SchemaVersion";
+    private const string SelectedLanguageKey = "Settings.Language";
     private const string SelectedGamePathKey = "Game.SelectedPath";
     private const string LegacyConfigFileName = "config.json";
     private const string MigratedLegacyConfigFileName = "config.json.migrated";
     private const string DatabaseFileName = "settings.db";
 
-    internal static void Initialize()
+    public void Initialize()
     {
         try
         {
@@ -33,7 +32,6 @@ internal static class SettingsPersistence
                     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
                 """);
-
             ExecuteNonQuery(connection, """
                 CREATE TABLE IF NOT EXISTS custom_input_methods (
                     display_name TEXT PRIMARY KEY,
@@ -42,17 +40,16 @@ internal static class SettingsPersistence
                     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
                 """);
-
             EnsurePrimaryKeySchema(connection);
             MigrateLegacyConfigJsonIfNeeded(connection);
         }
         catch
         {
-            // Keep the app usable even when the local database cannot be initialized.
+            // Local persistence failures must not prevent the application from starting.
         }
     }
 
-    internal static string? LoadSelectedGamePath()
+    public string? LoadSelectedGamePath()
     {
         try
         {
@@ -66,7 +63,7 @@ internal static class SettingsPersistence
         }
     }
 
-    internal static void SaveSelectedGamePath(string selectedGamePath)
+    public void SaveSelectedGamePath(string selectedGamePath)
     {
         try
         {
@@ -78,7 +75,57 @@ internal static class SettingsPersistence
         }
     }
 
-    internal static List<PersistedGamePath> LoadCustomGamePaths()
+    public string? LoadLanguageMode()
+    {
+        try
+        {
+            return ApplicationData.Current.LocalSettings.Values.TryGetValue(SelectedLanguageKey, out var value) &&
+                   value is string language && LanguageRules.IsSupportedMode(language)
+                ? language
+                : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public void SaveLanguageMode(string languageMode)
+    {
+        try
+        {
+            ApplicationData.Current.LocalSettings.Values[SelectedLanguageKey] = LanguageRules.NormalizeMode(languageMode);
+        }
+        catch
+        {
+            // Keep failures silent to avoid breaking the settings workflow.
+        }
+    }
+
+    public void ApplyLanguageMode()
+    {
+        try
+        {
+            var languageMode = LoadLanguageMode();
+            if (languageMode is null)
+            {
+                var legacyLanguage = global::Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride?.Trim();
+                languageMode = LanguageRules.IsSupportedMode(legacyLanguage) && legacyLanguage != LanguageRules.Automatic
+                    ? legacyLanguage!
+                    : LanguageRules.Automatic;
+                SaveLanguageMode(languageMode);
+            }
+
+            global::Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride =
+                languageMode == LanguageRules.Automatic ? string.Empty : languageMode;
+        }
+        catch
+        {
+            // Keep failures silent to avoid breaking application startup.
+        }
+    }
+
+    public IReadOnlyList<PersistedGamePath> LoadCustomGamePaths()
     {
         var results = new List<PersistedGamePath>();
         try
@@ -90,7 +137,6 @@ internal static class SettingsPersistence
                 FROM custom_game_paths
                 ORDER BY updated_at, path;
                 """;
-
             using var reader = command.ExecuteReader();
             while (reader.Read())
             {
@@ -99,21 +145,20 @@ internal static class SettingsPersistence
         }
         catch
         {
-            return results;
+            // Return all successfully read values when a later read fails.
         }
 
         return results;
     }
 
-    internal static void SaveCustomGamePaths(IEnumerable<PersistedGamePath> customGamePaths)
+    public void SaveCustomGamePaths(IEnumerable<PersistedGamePath> customGamePaths)
     {
         try
         {
-            var pathItems = customGamePaths.ToList();
+            var paths = customGamePaths.ToList();
             using var connection = OpenConnection();
             using var transaction = connection.BeginTransaction();
-
-            foreach (var path in pathItems)
+            foreach (var path in paths)
             {
                 using var command = connection.CreateCommand();
                 command.Transaction = transaction;
@@ -129,7 +174,7 @@ internal static class SettingsPersistence
                 command.ExecuteNonQuery();
             }
 
-            DeleteMissingGamePaths(connection, transaction, pathItems.Select(item => item.Path).ToList());
+            DeleteMissingRows(connection, transaction, "custom_game_paths", "path", paths.Select(item => item.Path).ToList());
             transaction.Commit();
         }
         catch
@@ -138,7 +183,7 @@ internal static class SettingsPersistence
         }
     }
 
-    internal static List<PersistedInputMethod> LoadCustomInputMethods()
+    public IReadOnlyList<PersistedInputMethod> LoadCustomInputMethods()
     {
         var results = new List<PersistedInputMethod>();
         try
@@ -150,7 +195,6 @@ internal static class SettingsPersistence
                 FROM custom_input_methods
                 ORDER BY updated_at, display_name;
                 """;
-
             using var reader = command.ExecuteReader();
             while (reader.Read())
             {
@@ -159,21 +203,20 @@ internal static class SettingsPersistence
         }
         catch
         {
-            return results;
+            // Return all successfully read values when a later read fails.
         }
 
         return results;
     }
 
-    internal static void SaveCustomInputMethods(IEnumerable<PersistedInputMethod> customInputMethods)
+    public void SaveCustomInputMethods(IEnumerable<PersistedInputMethod> customInputMethods)
     {
         try
         {
-            var inputMethodItems = customInputMethods.ToList();
+            var inputMethods = customInputMethods.ToList();
             using var connection = OpenConnection();
             using var transaction = connection.BeginTransaction();
-
-            foreach (var inputMethod in inputMethodItems)
+            foreach (var inputMethod in inputMethods)
             {
                 using var command = connection.CreateCommand();
                 command.Transaction = transaction;
@@ -189,7 +232,7 @@ internal static class SettingsPersistence
                 command.ExecuteNonQuery();
             }
 
-            DeleteMissingInputMethods(connection, transaction, inputMethodItems.Select(item => item.DisplayName).ToList());
+            DeleteMissingRows(connection, transaction, "custom_input_methods", "display_name", inputMethods.Select(item => item.DisplayName).ToList());
             transaction.Commit();
         }
         catch
@@ -198,39 +241,22 @@ internal static class SettingsPersistence
         }
     }
 
-    private static void DeleteMissingGamePaths(SqliteConnection connection, SqliteTransaction transaction, IReadOnlyList<string> pathsToKeep)
-    {
-        DeleteMissingRows(connection, transaction, "custom_game_paths", "path", pathsToKeep);
-    }
-
-    private static void DeleteMissingInputMethods(SqliteConnection connection, SqliteTransaction transaction, IReadOnlyList<string> displayNamesToKeep)
-    {
-        DeleteMissingRows(connection, transaction, "custom_input_methods", "display_name", displayNamesToKeep);
-    }
-
-    private static void DeleteMissingRows(
-        SqliteConnection connection,
-        SqliteTransaction transaction,
-        string tableName,
-        string keyColumnName,
-        IReadOnlyList<string> valuesToKeep)
+    private static void DeleteMissingRows(SqliteConnection connection, SqliteTransaction transaction, string tableName, string keyColumnName, IReadOnlyList<string> valuesToKeep)
     {
         using var command = connection.CreateCommand();
         command.Transaction = transaction;
         if (valuesToKeep.Count == 0)
         {
             command.CommandText = $"DELETE FROM {tableName};";
-            command.ExecuteNonQuery();
-            return;
         }
-
-        var parameterNames = valuesToKeep
-            .Select((_, index) => $"$value{index}")
-            .ToList();
-        command.CommandText = $"DELETE FROM {tableName} WHERE {keyColumnName} NOT IN ({string.Join(", ", parameterNames)});";
-        for (var i = 0; i < valuesToKeep.Count; i++)
+        else
         {
-            command.Parameters.AddWithValue(parameterNames[i], valuesToKeep[i]);
+            var parameterNames = valuesToKeep.Select((_, index) => $"$value{index}").ToList();
+            command.CommandText = $"DELETE FROM {tableName} WHERE {keyColumnName} NOT IN ({string.Join(", ", parameterNames)});";
+            for (var i = 0; i < valuesToKeep.Count; i++)
+            {
+                command.Parameters.AddWithValue(parameterNames[i], valuesToKeep[i]);
+            }
         }
 
         command.ExecuteNonQuery();
@@ -245,20 +271,14 @@ internal static class SettingsPersistence
             return;
         }
 
-        var json = File.ReadAllText(legacyConfigPath, Encoding.UTF8);
-        using var document = JsonDocument.Parse(json);
+        using var document = JsonDocument.Parse(File.ReadAllText(legacyConfigPath, Encoding.UTF8));
         var root = document.RootElement;
         if (root.ValueKind != JsonValueKind.Object)
         {
             return;
         }
 
-        var selectedGamePath = ReadString(root, "SelectedGamePath");
-        if (string.IsNullOrWhiteSpace(selectedGamePath))
-        {
-            selectedGamePath = ReadString(root, "GameDir");
-        }
-
+        var selectedGamePath = ReadString(root, "SelectedGamePath") ?? ReadString(root, "GameDir");
         if (!string.IsNullOrWhiteSpace(selectedGamePath))
         {
             values[SelectedGamePathKey] = selectedGamePath;
@@ -294,25 +314,18 @@ internal static class SettingsPersistence
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
-            """);
-
-        ExecuteNonQuery(connection, transaction, """
             INSERT INTO custom_game_paths_new (display_name, path, created_at, updated_at)
             SELECT source.display_name, source.path, source.created_at, source.updated_at
             FROM custom_game_paths source
-            WHERE source.path IS NOT NULL
-                AND source.path <> ''
+            WHERE source.path IS NOT NULL AND source.path <> ''
                 AND source.rowid = (
-                    SELECT latest.rowid
-                    FROM custom_game_paths latest
+                    SELECT latest.rowid FROM custom_game_paths latest
                     WHERE latest.path = source.path
-                    ORDER BY latest.updated_at DESC, latest.rowid DESC
-                    LIMIT 1
+                    ORDER BY latest.updated_at DESC, latest.rowid DESC LIMIT 1
                 );
+            DROP TABLE custom_game_paths;
+            ALTER TABLE custom_game_paths_new RENAME TO custom_game_paths;
             """);
-
-        ExecuteNonQuery(connection, transaction, "DROP TABLE custom_game_paths;");
-        ExecuteNonQuery(connection, transaction, "ALTER TABLE custom_game_paths_new RENAME TO custom_game_paths;");
     }
 
     private static void MigrateCustomInputMethodsTable(SqliteConnection connection, SqliteTransaction transaction)
@@ -324,25 +337,18 @@ internal static class SettingsPersistence
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
-            """);
-
-        ExecuteNonQuery(connection, transaction, """
             INSERT INTO custom_input_methods_new (display_name, category, created_at, updated_at)
             SELECT source.display_name, source.category, source.created_at, source.updated_at
             FROM custom_input_methods source
-            WHERE source.display_name IS NOT NULL
-                AND source.display_name <> ''
+            WHERE source.display_name IS NOT NULL AND source.display_name <> ''
                 AND source.rowid = (
-                    SELECT latest.rowid
-                    FROM custom_input_methods latest
+                    SELECT latest.rowid FROM custom_input_methods latest
                     WHERE latest.display_name = source.display_name
-                    ORDER BY latest.updated_at DESC, latest.rowid DESC
-                    LIMIT 1
+                    ORDER BY latest.updated_at DESC, latest.rowid DESC LIMIT 1
                 );
+            DROP TABLE custom_input_methods;
+            ALTER TABLE custom_input_methods_new RENAME TO custom_input_methods;
             """);
-
-        ExecuteNonQuery(connection, transaction, "DROP TABLE custom_input_methods;");
-        ExecuteNonQuery(connection, transaction, "ALTER TABLE custom_input_methods_new RENAME TO custom_input_methods;");
     }
 
     private static bool ColumnExists(SqliteConnection connection, string tableName, string columnName)
@@ -399,28 +405,9 @@ internal static class SettingsPersistence
             }
 
             var displayName = ReadString(gamePath, "Name");
-            if (string.IsNullOrWhiteSpace(displayName))
-            {
-                displayName = Path.GetFileName(path);
-            }
-
-            if (string.IsNullOrWhiteSpace(displayName))
-            {
-                displayName = path;
-            }
-
-            using var command = connection.CreateCommand();
-            command.Transaction = transaction;
-            command.CommandText = """
-                INSERT INTO custom_game_paths (display_name, path, updated_at)
-                VALUES ($displayName, $path, CURRENT_TIMESTAMP)
-                ON CONFLICT(path) DO UPDATE SET
-                    display_name = excluded.display_name,
-                    updated_at = CURRENT_TIMESTAMP;
-                """;
-            command.Parameters.AddWithValue("$displayName", displayName);
-            command.Parameters.AddWithValue("$path", path);
-            command.ExecuteNonQuery();
+            displayName = string.IsNullOrWhiteSpace(displayName) ? Path.GetFileName(path) : displayName;
+            displayName = string.IsNullOrWhiteSpace(displayName) ? path : displayName;
+            UpsertGamePath(connection, transaction, displayName, path);
         }
 
         transaction.Commit();
@@ -436,33 +423,39 @@ internal static class SettingsPersistence
         using var transaction = connection.BeginTransaction();
         foreach (var inputMethod in inputMethods.EnumerateArray())
         {
-            if (inputMethod.ValueKind != JsonValueKind.Object)
-            {
-                continue;
-            }
-
-            var displayName = ReadString(inputMethod, "Name")?.Trim();
+            var displayName = inputMethod.ValueKind == JsonValueKind.Object ? ReadString(inputMethod, "Name")?.Trim() : null;
             if (string.IsNullOrWhiteSpace(displayName))
             {
                 continue;
             }
 
-            var category = NormalizeLegacyCategory(ReadString(inputMethod, "Category"));
             using var command = connection.CreateCommand();
             command.Transaction = transaction;
             command.CommandText = """
                 INSERT INTO custom_input_methods (display_name, category, updated_at)
                 VALUES ($displayName, $category, CURRENT_TIMESTAMP)
-                ON CONFLICT(display_name) DO UPDATE SET
-                    category = excluded.category,
-                    updated_at = CURRENT_TIMESTAMP;
+                ON CONFLICT(display_name) DO UPDATE SET category = excluded.category, updated_at = CURRENT_TIMESTAMP;
                 """;
             command.Parameters.AddWithValue("$displayName", displayName);
-            command.Parameters.AddWithValue("$category", category);
+            command.Parameters.AddWithValue("$category", NormalizeLegacyCategory(ReadString(inputMethod, "Category")));
             command.ExecuteNonQuery();
         }
 
         transaction.Commit();
+    }
+
+    private static void UpsertGamePath(SqliteConnection connection, SqliteTransaction transaction, string displayName, string path)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            INSERT INTO custom_game_paths (display_name, path, updated_at)
+            VALUES ($displayName, $path, CURRENT_TIMESTAMP)
+            ON CONFLICT(path) DO UPDATE SET display_name = excluded.display_name, updated_at = CURRENT_TIMESTAMP;
+            """;
+        command.Parameters.AddWithValue("$displayName", displayName);
+        command.Parameters.AddWithValue("$path", path);
+        command.ExecuteNonQuery();
     }
 
     private static string NormalizeLegacyCategory(string? category) => category switch
@@ -472,12 +465,10 @@ internal static class SettingsPersistence
         _ => nameof(ImeCategory.ChineseSimplified)
     };
 
-    private static string? ReadString(JsonElement element, string propertyName)
-    {
-        return element.TryGetProperty(propertyName, out var property) && property.ValueKind == JsonValueKind.String
+    private static string? ReadString(JsonElement element, string propertyName) =>
+        element.TryGetProperty(propertyName, out var property) && property.ValueKind == JsonValueKind.String
             ? property.GetString()
             : null;
-    }
 
     private static void RenameMigratedLegacyConfig(string legacyConfigPath)
     {
@@ -493,12 +484,7 @@ internal static class SettingsPersistence
     private static SqliteConnection OpenConnection()
     {
         var databasePath = Path.Combine(ApplicationData.Current.LocalFolder.Path, DatabaseFileName);
-        var connectionString = new SqliteConnectionStringBuilder
-        {
-            DataSource = databasePath
-        }.ToString();
-
-        var connection = new SqliteConnection(connectionString);
+        var connection = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = databasePath }.ToString());
         connection.Open();
         return connection;
     }

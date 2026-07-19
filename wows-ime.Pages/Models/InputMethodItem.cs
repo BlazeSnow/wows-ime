@@ -1,10 +1,20 @@
-namespace wows_ime.Views;
+using wows_ime.Core.Models;
+using wows_ime.Pages.Abstractions;
+
+namespace wows_ime.Pages.Models;
 
 public sealed class InputMethodItem : Microsoft.UI.Xaml.DependencyObject
 {
-    public InputMethodItem(string displayName, ImeCategory initialCategory = ImeCategory.ChineseSimplified, bool isCustom = false)
+    private readonly IPageLocalization localization;
+
+    public InputMethodItem(
+        string displayName,
+        IPageLocalization localization,
+        ImeCategory initialCategory = ImeCategory.ChineseSimplified,
+        bool isCustom = false)
     {
         DisplayName = displayName;
+        this.localization = localization;
         Category = initialCategory;
         CategoryIndex = (int)initialCategory;
         IsCustom = isCustom;
@@ -12,6 +22,18 @@ public sealed class InputMethodItem : Microsoft.UI.Xaml.DependencyObject
 
     public string DisplayName { get; }
     public bool IsCustom { get; }
+    public int ConfirmationNumber { get; set; }
+    public string ConfirmationNumberText => ConfirmationNumber.ToString();
+    public string DeleteButtonContent => localization.GetString("DeleteCustomImeButtonTemplate/Content");
+    public string ChineseSimplifiedCategoryContent => localization.GetString("ImeCategorySimplifiedItem/Content");
+    public string ChineseTraditionalCategoryContent => localization.GetString("ImeCategoryTraditionalItem/Content");
+    public string JapaneseCategoryContent => localization.GetString("ImeCategoryJapaneseItem/Content");
+    public string CategoryDisplayName => Category switch
+    {
+        ImeCategory.ChineseTraditional => localization.GetString("Category/ChineseTraditional"),
+        ImeCategory.Japanese => localization.GetString("Category/Japanese"),
+        _ => localization.GetString("Category/ChineseSimplified")
+    };
     public Visibility DeleteButtonVisibility => IsCustom ? Visibility.Visible : Visibility.Collapsed;
 
     public bool IsSelected

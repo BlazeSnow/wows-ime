@@ -1,43 +1,33 @@
-﻿using Microsoft.UI.Windowing;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Win32;
 using System.Text;
 using Windows.ApplicationModel.Resources;
 using Windows.Storage;
 using Windows.UI.ViewManagement;
 using WinRT.Interop;
+using wows_ime.Core.Infrastructure;
+using wows_ime.Pages.Views;
 
 namespace wows_ime
 {
-    /// <summary>
-    /// Provides application-specific behavior to supplement the default Application class.
-    /// </summary>
     public partial class App : Application
     {
         private Window window = Window.Current;
         private UISettings? uiSettings;
+        private readonly SettingsPersistence settings = new();
         private static readonly ResourceLoader ResourceLoader = new();
         public static Window? MainWindow { get; private set; }
 
-        /// <summary>
-        /// Initializes the singleton application object.  This is the first line of authored code
-        /// executed, and as such is the logical equivalent of main() or WinMain().
-        /// </summary>
         public App()
         {
+            settings.ApplyLanguageMode();
             this.InitializeComponent();
             this.UnhandledException += App_UnhandledException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
         }
 
-        /// <summary>
-        /// Invoked when the application is launched normally by the end user.  Other entry points
-        /// will be used such as when the application is launched to open a specific file.
-        /// </summary>
-        /// <param name="e">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
             window ??= new Window();
@@ -46,52 +36,15 @@ namespace wows_ime
             window.SystemBackdrop = new MicaBackdrop();
             SetWindowIcon(window);
 
-            var rootFrame = CreateWindowContent(window);
+            settings.Initialize();
+            var shell = new Shell(new PageHost(window, settings));
+            window.ExtendsContentIntoTitleBar = true;
+            window.Content = shell;
+            window.SetTitleBar(shell.AppTitleBar);
+
             ApplySystemTitleBarTheme(window);
             EnsureThemeListener();
-
-            _ = rootFrame.Navigate(typeof(MainPage), e.Arguments);
             window.Activate();
-        }
-
-        private Frame CreateWindowContent(Window targetWindow)
-        {
-            var titleBar = CreateTitleBar();
-            var rootFrame = new Frame();
-            rootFrame.NavigationFailed += OnNavigationFailed;
-
-            var rootGrid = new Grid
-            {
-                Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0))
-            };
-            rootGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(48) });
-            rootGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-
-            Grid.SetRow(titleBar, 0);
-            Grid.SetRow(rootFrame, 1);
-            rootGrid.Children.Add(titleBar);
-            rootGrid.Children.Add(rootFrame);
-
-            targetWindow.ExtendsContentIntoTitleBar = true;
-            targetWindow.Content = rootGrid;
-            targetWindow.SetTitleBar(titleBar);
-            return rootFrame;
-        }
-
-        private static TitleBar CreateTitleBar()
-        {
-            return new TitleBar
-            {
-                Title = SR("App/Title"),
-                Height = 48,
-                Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0)),
-                IsBackButtonVisible = false,
-                IsPaneToggleButtonVisible = false,
-                IconSource = new ImageIconSource
-                {
-                    ImageSource = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.ico"))
-                }
-            };
         }
 
         private static void SetWindowIcon(Window targetWindow)
@@ -165,20 +118,20 @@ namespace wows_ime
             }
 
             var foreground = isDark
-                ? Windows.UI.Color.FromArgb(255, 255, 255, 255)
-                : Windows.UI.Color.FromArgb(255, 0, 0, 0);
+                ? global::Windows.UI.Color.FromArgb(255, 255, 255, 255)
+                : global::Windows.UI.Color.FromArgb(255, 0, 0, 0);
             var inactiveForeground = isDark
-                ? Windows.UI.Color.FromArgb(160, 255, 255, 255)
-                : Windows.UI.Color.FromArgb(160, 0, 0, 0);
+                ? global::Windows.UI.Color.FromArgb(160, 255, 255, 255)
+                : global::Windows.UI.Color.FromArgb(160, 0, 0, 0);
             var hoverBackground = isDark
-                ? Windows.UI.Color.FromArgb(32, 255, 255, 255)
-                : Windows.UI.Color.FromArgb(24, 0, 0, 0);
+                ? global::Windows.UI.Color.FromArgb(32, 255, 255, 255)
+                : global::Windows.UI.Color.FromArgb(24, 0, 0, 0);
             var pressedBackground = isDark
-                ? Windows.UI.Color.FromArgb(48, 255, 255, 255)
-                : Windows.UI.Color.FromArgb(36, 0, 0, 0);
+                ? global::Windows.UI.Color.FromArgb(48, 255, 255, 255)
+                : global::Windows.UI.Color.FromArgb(36, 0, 0, 0);
 
-            appWindow.TitleBar.ButtonBackgroundColor = Windows.UI.Color.FromArgb(0, 0, 0, 0);
-            appWindow.TitleBar.ButtonInactiveBackgroundColor = Windows.UI.Color.FromArgb(0, 0, 0, 0);
+            appWindow.TitleBar.ButtonBackgroundColor = global::Windows.UI.Color.FromArgb(0, 0, 0, 0);
+            appWindow.TitleBar.ButtonInactiveBackgroundColor = global::Windows.UI.Color.FromArgb(0, 0, 0, 0);
             appWindow.TitleBar.ButtonHoverBackgroundColor = hoverBackground;
             appWindow.TitleBar.ButtonPressedBackgroundColor = pressedBackground;
             appWindow.TitleBar.ButtonForegroundColor = foreground;
@@ -197,16 +150,6 @@ namespace wows_ime
             {
                 return false;
             }
-        }
-
-        /// <summary>
-        /// Invoked when Navigation to a certain page fails
-        /// </summary>
-        /// <param name="sender">The Frame which failed navigation</param>
-        /// <param name="e">Details about the navigation failure</param>
-        void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
-        {
-            throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
         }
 
         private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
@@ -285,4 +228,3 @@ namespace wows_ime
         }
     }
 }
-

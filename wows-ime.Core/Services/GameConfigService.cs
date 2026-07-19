@@ -1,10 +1,10 @@
 using System.Text;
 using System.Xml.Linq;
-using wows_ime.Views;
+using wows_ime.Core.Models;
 
-namespace wows_ime.Services;
+namespace wows_ime.Core.Services;
 
-internal static class GameConfigService
+public static class GameConfigService
 {
     private const string WowsExeName = "WorldOfWarships.exe";
     private const string KorabliExeName = "Korabli.exe";
@@ -13,15 +13,19 @@ internal static class GameConfigService
     private const string TagTraditional = "GFxIME_Ch_Trad_Array";
     private const string TagJapanese = "GFxIME_Jp";
 
-    internal static bool HasGameExecutable(string gameRoot)
+    public static bool HasGameExecutable(string gameRoot)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(gameRoot);
+
         var wows = Path.Combine(gameRoot, WowsExeName);
         var korabli = Path.Combine(gameRoot, KorabliExeName);
         return File.Exists(wows) || File.Exists(korabli);
     }
 
-    internal static List<string> ResolveTargetConfigFiles(string gameRoot)
+    public static List<string> ResolveTargetConfigFiles(string gameRoot)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(gameRoot);
+
         var binPath = Path.Combine(gameRoot, "bin");
         var results = new List<string>();
 
@@ -42,47 +46,65 @@ internal static class GameConfigService
         return results;
     }
 
-    internal static async Task WriteConfigFilesAsync(IEnumerable<string> targetFiles, IEnumerable<InputMethodItem> selectedIme)
+    public static async Task WriteConfigFilesAsync(
+        IEnumerable<string> targetFiles,
+        IEnumerable<InputMethodDefinition> selectedInputMethods,
+        CancellationToken cancellationToken = default)
     {
-        var document = BuildConfigDocument(selectedIme);
+        ArgumentNullException.ThrowIfNull(targetFiles);
+        ArgumentNullException.ThrowIfNull(selectedInputMethods);
+
+        var document = BuildConfigDocument(selectedInputMethods);
         foreach (var targetFile in targetFiles)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var targetDirectory = Path.GetDirectoryName(targetFile);
             if (!string.IsNullOrEmpty(targetDirectory))
             {
                 Directory.CreateDirectory(targetDirectory);
             }
 
-            await using var stream = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None);
+            await using var stream = new FileStream(
+                targetFile,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None,
+                bufferSize: 4096,
+                useAsync: true);
             await using var writer = new StreamWriter(stream, new UTF8Encoding(false));
             await writer.WriteAsync(document.ToString());
         }
     }
 
-    private static XDocument BuildConfigDocument(IEnumerable<InputMethodItem> selectedIme)
+    public static XDocument BuildConfigDocument(IEnumerable<InputMethodDefinition> selectedInputMethods)
     {
+        ArgumentNullException.ThrowIfNull(selectedInputMethods);
+
         var simplified = new XElement("ChineseSimplified");
         var traditional = new XElement("ChineseTraditional");
         var japanese = new XElement("Japanese");
 
-        foreach (var ime in selectedIme)
+        foreach (var inputMethod in selectedInputMethods)
         {
-            var target = ime.Category switch
+            ArgumentNullException.ThrowIfNull(inputMethod);
+
+            var target = inputMethod.Category switch
             {
                 ImeCategory.ChineseSimplified => simplified,
                 ImeCategory.ChineseTraditional => traditional,
                 _ => japanese
             };
 
-            var tag = ime.Category switch
+            var tag = inputMethod.Category switch
             {
                 ImeCategory.ChineseSimplified => TagSimplified,
                 ImeCategory.ChineseTraditional => TagTraditional,
                 _ => TagJapanese
             };
 
-            target.Add(new XElement("imeName", ime.DisplayName));
-            target.Add(new XElement("displayName", ime.DisplayName));
+            target.Add(new XElement("imeName", inputMethod.DisplayName));
+            target.Add(new XElement("displayName", inputMethod.DisplayName));
             target.Add(new XElement("Tag", tag));
         }
 

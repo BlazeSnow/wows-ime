@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Page
+    x:Class="wows_ime.Pages.Views.HomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:wows_ime.Pages.Models"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
+    mc:Ignorable="d">
+
+    <ScrollViewer
+        VerticalScrollMode="Enabled"
+        VerticalScrollBarVisibility="Auto"
+        HorizontalScrollMode="Disabled"
+        HorizontalScrollBarVisibility="Disabled">
+        <Grid Padding="20" RowSpacing="8" Background="Transparent">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Step 1: Game Path -->
+            <toolkit:SettingsExpander x:Name="GamePathSection" Grid.Row="0" IsExpanded="True">
+                <toolkit:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE8B7;" />
+                </toolkit:SettingsExpander.HeaderIcon>
+                <toolkit:SettingsExpander.Header>
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="GameRootLabel" VerticalAlignment="Center" />
+                        <Button x:Name="AddCustomGamePathButton" Grid.Column="1" Click="AddCustomGamePathButton_Click" VerticalAlignment="Center" />
+                        <Button x:Name="OpenFolderButton" Grid.Column="2" Click="OpenFolderButton_Click" VerticalAlignment="Center" />
+                        <TextBlock
+                            Grid.Column="3"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Right"
+                            Text="{x:Bind CurrentSelectedGamePathText, Mode=OneWay}"
+                            TextTrimming="CharacterEllipsis"
+                            Opacity="0.72" />
+                    </Grid>
+                </toolkit:SettingsExpander.Header>
+                <toolkit:SettingsExpander.Items>
+                    <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
+                    <ItemsRepeater
+                        ItemsSource="{x:Bind GamePathOptions, Mode=OneWay}"
+                        HorizontalAlignment="Stretch">
+                        <ItemsRepeater.Layout>
+                            <StackLayout Spacing="0" />
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="local:GamePathOption">
+                                <Border
+                                    HorizontalAlignment="Stretch"
+                                    Padding="12,8"
+                                    BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                    BorderThickness="0,0,0,1">
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="50" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <RadioButton
+                                            GroupName="GamePathGroup"
+                                            IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                            Checked="GamePathRadioButton_Checked"
+                                            Tag="{x:Bind}" />
+                                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Top">
+                                            <TextBlock Text="{x:Bind DisplayName}" />
+                                            <TextBlock
+                                                Text="{x:Bind Path}"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                TextWrapping="WrapWholeWords" />
+                                        </StackPanel>
+                                        <Button
+                                            Grid.Column="2"
+                                            Content="{x:Bind DeleteButtonContent}"
+                                            Click="DeleteCustomGamePathButton_Click"
+                                            Tag="{x:Bind}"
+                                            Visibility="{x:Bind DeleteButtonVisibility, Mode=OneWay}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                    </toolkit:SettingsCard>
+                </toolkit:SettingsExpander.Items>
+            </toolkit:SettingsExpander>
+
+            <!-- Step 2: IME Selection -->
+            <toolkit:SettingsExpander x:Name="ImeSection" Grid.Row="0" IsExpanded="True" VerticalAlignment="Stretch" Visibility="Collapsed">
+                <toolkit:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE765;" />
+                </toolkit:SettingsExpander.HeaderIcon>
+                <toolkit:SettingsExpander.Header>
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="ImeSectionTitle" VerticalAlignment="Center" />
+                        <Button x:Name="AddCustomImeButton" Grid.Column="1" Click="AddCustomImeButton_Click" />
+                        <Button x:Name="RefreshImeButton" Grid.Column="2" Click="RefreshImeButton_Click" />
+                    </Grid>
+                </toolkit:SettingsExpander.Header>
+                <toolkit:SettingsExpander.Items>
+                    <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
+                    <Grid RowSpacing="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="180" />
+                            <ColumnDefinition Width="80" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="ImeTableHeaderName" Grid.Column="1" />
+                        <TextBlock x:Name="ImeTableHeaderCategory" Grid.Column="2" />
+                        <TextBlock x:Name="ImeTableHeaderAction" Grid.Column="3" />
+
+                        <ItemsRepeater
+                            Grid.Row="1"
+                            Grid.ColumnSpan="4"
+                            ItemsSource="{x:Bind InputMethods, Mode=OneWay}"
+                            HorizontalAlignment="Stretch">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="0" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="local:InputMethodItem">
+                                    <Border
+                                        HorizontalAlignment="Stretch"
+                                        Padding="12,8"
+                                        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                        BorderThickness="0,0,0,1">
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="50" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="180" />
+                                                <ColumnDefinition Width="80" />
+                                            </Grid.ColumnDefinitions>
+                                            <CheckBox
+                                                MinWidth="0"
+                                                MinHeight="0"
+                                                Padding="0"
+                                                Margin="0"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
+                                            <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind DisplayName}" />
+                                            <ComboBox Grid.Column="2" SelectedIndex="{x:Bind CategoryIndex, Mode=TwoWay}" SelectionChanged="ImeCategoryComboBox_SelectionChanged" Tag="{x:Bind}">
+                                                <ComboBoxItem Content="{x:Bind ChineseSimplifiedCategoryContent}" />
+                                                <ComboBoxItem Content="{x:Bind ChineseTraditionalCategoryContent}" />
+                                                <ComboBoxItem Content="{x:Bind JapaneseCategoryContent}" />
+                                            </ComboBox>
+                                            <Button
+                                                Grid.Column="3"
+                                                Content="{x:Bind DeleteButtonContent}"
+                                                Click="DeleteCustomImeButton_Click"
+                                                HorizontalAlignment="Stretch"
+                                                Tag="{x:Bind}"
+                                                Visibility="{x:Bind DeleteButtonVisibility, Mode=OneWay}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </Grid>
+                    </toolkit:SettingsCard>
+                </toolkit:SettingsExpander.Items>
+            </toolkit:SettingsExpander>
+
+            <!-- Step 3: Confirm & Write -->
+            <StackPanel
+                x:Name="ConfirmSection"
+                Grid.Row="0"
+                Spacing="8"
+                Visibility="Collapsed">
+                <toolkit:SettingsCard>
+                    <toolkit:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xE8B7;" />
+                    </toolkit:SettingsCard.HeaderIcon>
+                    <toolkit:SettingsCard.Header>
+                        <TextBlock x:Name="ConfirmGameRootLabel" />
+                    </toolkit:SettingsCard.Header>
+                    <TextBlock x:Name="ConfirmGameRootPath" TextWrapping="WrapWholeWords" Opacity="0.72" />
+                </toolkit:SettingsCard>
+                <toolkit:SettingsExpander IsExpanded="True">
+                    <toolkit:SettingsExpander.HeaderIcon>
+                        <FontIcon Glyph="&#xE765;" />
+                    </toolkit:SettingsExpander.HeaderIcon>
+                    <toolkit:SettingsExpander.Header>
+                        <TextBlock x:Name="ConfirmImeSectionHeader" />
+                    </toolkit:SettingsExpander.Header>
+                    <toolkit:SettingsExpander.Items>
+                        <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
+                        <ItemsRepeater
+                            ItemsSource="{x:Bind ConfirmSelectedInputMethods, Mode=OneWay}"
+                            HorizontalAlignment="Stretch">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="0" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="local:InputMethodItem">
+                                    <Border
+                                        HorizontalAlignment="Stretch"
+                                        Padding="12,8"
+                                        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                        BorderThickness="0,0,0,1">
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="28" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Text="{x:Bind ConfirmationNumberText}"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                Text="{x:Bind DisplayName}"
+                                                TextTrimming="CharacterEllipsis" />
+                                            <TextBlock
+                                                Grid.Column="2"
+                                                VerticalAlignment="Center"
+                                                Text="{x:Bind CategoryDisplayName}"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                TextTrimming="CharacterEllipsis" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                        </toolkit:SettingsCard>
+                    </toolkit:SettingsExpander.Items>
+                </toolkit:SettingsExpander>
+            </StackPanel>
+
+            <!-- Navigation Bar -->
+            <toolkit:SettingsCard
+                Grid.Row="1"
+                ContentAlignment="Vertical"
+                HorizontalContentAlignment="Stretch">
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="PrevButton" Click="PrevButton_Click" Visibility="Collapsed" />
+                    <TextBlock
+                        x:Name="StepProgressText"
+                        Grid.Column="1"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Opacity="0.72" />
+                    <Button x:Name="NextButton" Grid.Column="2" Click="NextButton_Click" Style="{StaticResource AccentButtonStyle}" />
+                </Grid>
+            </toolkit:SettingsCard>
+
+            <InfoBar Grid.Row="2" x:Name="StatusInfoBar" IsOpen="False" IsClosable="True" />
+        </Grid>
+    </ScrollViewer>
+</Page>

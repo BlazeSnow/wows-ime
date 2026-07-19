@@ -144,6 +144,9 @@
   <data name="ImeSectionTitle.Text" xml:space="preserve">
     <value>检测到的输入法</value>
   </data>
+  <data name="ConfirmImeSectionHeader.Text" xml:space="preserve">
+    <value>已选输入法</value>
+  </data>
   <data name="AddCustomImeButton.Content" xml:space="preserve">
     <value>自定义输入法名称</value>
   </data>
@@ -250,7 +253,8 @@
     <value>删除自定义路径</value>
   </data>
   <data name="Dialog/DeleteCustomGamePath/Content" xml:space="preserve">
-    <value>确定要删除“{0}”吗？&#x0A;{1}</value>
+    <value>确定要删除“{0}”吗？
+{1}</value>
   </data>
   <data name="Dialog/DeleteCustomGamePath/PrimaryButton" xml:space="preserve">
     <value>删除</value>
@@ -356,5 +360,38 @@
   </data>
   <data name="Ime/Weixin" xml:space="preserve">
     <value>微信输入法</value>
+  </data>
+  <data name="Nav/Home" xml:space="preserve">
+    <value>主页</value>
+  </data>
+  <data name="Nav/Settings" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="Settings/LanguageLabel" xml:space="preserve">
+    <value>语言</value>
+  </data>
+  <data name="Settings/Automatic" xml:space="preserve">
+    <value>自动</value>
+  </data>
+  <data name="Settings/Restart/Title" xml:space="preserve">
+    <value>重启应用</value>
+  </data>
+  <data name="Settings/Restart/Content" xml:space="preserve">
+    <value>语言更改将在重启后生效，是否立即重启？</value>
+  </data>
+  <data name="Settings/Restart/Primary" xml:space="preserve">
+    <value>立即重启</value>
+  </data>
+  <data name="Settings/Restart/Close" xml:space="preserve">
+    <value>稍后</value>
+  </data>
+  <data name="Step/Progress" xml:space="preserve">
+    <value>第 {0} 步，共 {1} 步</value>
+  </data>
+  <data name="Step/Previous" xml:space="preserve">
+    <value>上一步</value>
+  </data>
+  <data name="Step/Next" xml:space="preserve">
+    <value>下一步</value>
   </data>
 </root>

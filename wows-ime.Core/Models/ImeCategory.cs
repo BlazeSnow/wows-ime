@@ -1,4 +1,4 @@
-namespace wows_ime.Views;
+namespace wows_ime.Core.Models;
 
 public enum ImeCategory
 {

@@ -32,16 +32,12 @@
             <SolidColorBrush x:Key="PrimaryBrush" Color="{ThemeResource Primary}" />
             <SolidColorBrush x:Key="PrimaryForegroundBrush" Color="{ThemeResource PrimaryForeground}" />
 
-            <x:Double x:Key="AppFontSize">14</x:Double>
-
             <Style x:Key="MyLabel" TargetType="TextBlock">
                 <Setter Property="Foreground"
                         Value="{StaticResource PrimaryBrush}" />
             </Style>
 
             <Style x:Key="Action" TargetType="Button">
-                <Setter Property="FontSize"
-                        Value="{StaticResource AppFontSize}" />
                 <Setter Property="Padding"
                         Value="14,10" />
             </Style>
