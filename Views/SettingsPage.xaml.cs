@@ -59,7 +59,7 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        var restart = await ShowLanguageRestartDialogAsync();
+        var restart = await ShowLanguageRestartDialogAsync(tag);
         SettingsPersistence.SaveSelectedLanguage(tag);
         Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = tag == "auto" ? string.Empty : tag;
 
@@ -69,14 +69,14 @@ public sealed partial class SettingsPage : Page
         }
     }
 
-    private async Task<bool> ShowLanguageRestartDialogAsync()
+    private async Task<bool> ShowLanguageRestartDialogAsync(string language)
     {
         var dialog = new ContentDialog
         {
-            Title = SR("Settings/Restart/Title"),
-            Content = SR("Settings/Restart/Content"),
-            PrimaryButtonText = SR("Settings/Restart/Primary"),
-            CloseButtonText = SR("Settings/Restart/Close"),
+            Title = AppResources.GetForLanguage("Settings/Restart/Title", language),
+            Content = AppResources.GetForLanguage("Settings/Restart/Content", language),
+            PrimaryButtonText = AppResources.GetForLanguage("Settings/Restart/Primary", language),
+            CloseButtonText = AppResources.GetForLanguage("Settings/Restart/Close", language),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot
         };
