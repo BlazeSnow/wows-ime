@@ -48,41 +48,20 @@
                 </toolkit:SettingsExpander.Header>
                 <toolkit:SettingsExpander.Items>
                     <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
-                        <ListView
-                            x:Name="GamePathListView"
-                            ItemsSource="{x:Bind GamePathOptions, Mode=OneWay}"
-                            SelectionMode="None"
-                            IsItemClickEnabled="False"
-                            ScrollViewer.VerticalScrollBarVisibility="Auto">
-                            <ListView.ItemContainerStyle>
-                                <Style TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
-                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                    <Setter Property="Background" Value="Transparent" />
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="ListViewItem">
-                                                <ListViewItemPresenter
-                                                    Background="{TemplateBinding Background}"
-                                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                                    Content="{TemplateBinding Content}"
-                                                    ContentTemplate="{TemplateBinding ContentTemplate}"
-                                                    ContentTransitions="{TemplateBinding ContentTransitions}"
-                                                    CornerRadius="6"
-                                                    HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                    Padding="{TemplateBinding Padding}"
-                                                    PointerOverBackground="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                                    SelectedBackground="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                                    SelectedPointerOverBackground="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                                    VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </ListView.ItemContainerStyle>
-                            <ListView.ItemTemplate>
-                                <DataTemplate x:DataType="local:GamePathOption">
-                                    <Grid Padding="8">
+                    <ItemsRepeater
+                        ItemsSource="{x:Bind GamePathOptions, Mode=OneWay}"
+                        HorizontalAlignment="Stretch">
+                        <ItemsRepeater.Layout>
+                            <StackLayout Spacing="0" />
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="local:GamePathOption">
+                                <Border
+                                    HorizontalAlignment="Stretch"
+                                    Padding="12,8"
+                                    BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                    BorderThickness="0,0,0,1">
+                                    <Grid ColumnSpacing="12">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="50" />
                                             <ColumnDefinition Width="*" />
@@ -95,7 +74,10 @@
                                             Tag="{x:Bind}" />
                                         <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Top">
                                             <TextBlock Text="{x:Bind DisplayName}" />
-                                            <TextBlock Text="{x:Bind Path}" Opacity="0.72" TextWrapping="WrapWholeWords" />
+                                            <TextBlock
+                                                Text="{x:Bind Path}"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                TextWrapping="WrapWholeWords" />
                                         </StackPanel>
                                         <Button
                                             x:Uid="DeleteCustomGamePathButtonTemplate"
@@ -104,9 +86,10 @@
                                             Tag="{x:Bind}"
                                             Visibility="{x:Bind DeleteButtonVisibility, Mode=OneWay}" />
                                     </Grid>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
                     </toolkit:SettingsCard>
                 </toolkit:SettingsExpander.Items>
             </toolkit:SettingsExpander>
@@ -130,35 +113,39 @@
                 </toolkit:SettingsExpander.Header>
                 <toolkit:SettingsExpander.Items>
                     <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
-                        <Grid RowSpacing="8">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="50" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="180" />
-                                <ColumnDefinition Width="80" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock x:Uid="ImeTableHeaderName" Grid.Column="1" />
-                            <TextBlock x:Uid="ImeTableHeaderCategory" Grid.Column="2" />
-                            <TextBlock x:Uid="ImeTableHeaderAction" Grid.Column="3" />
+                    <Grid RowSpacing="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="180" />
+                            <ColumnDefinition Width="80" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Uid="ImeTableHeaderName" Grid.Column="1" />
+                        <TextBlock x:Uid="ImeTableHeaderCategory" Grid.Column="2" />
+                        <TextBlock x:Uid="ImeTableHeaderAction" Grid.Column="3" />
 
-                            <ListView
-                                Grid.Row="1"
-                                Grid.ColumnSpan="4"
-                                x:Name="ImeListView"
-                                VerticalAlignment="Stretch"
-                                HorizontalAlignment="Stretch"
-                                ScrollViewer.VerticalScrollMode="Disabled"
-                                ScrollViewer.VerticalScrollBarVisibility="Hidden"
-                                ItemsSource="{x:Bind InputMethods, Mode=OneWay}">
-                                <ListView.ItemTemplate>
-                                    <DataTemplate x:DataType="local:InputMethodItem">
-                                        <Grid ColumnSpacing="10" Margin="0,10,0,10">
+                        <ItemsRepeater
+                            Grid.Row="1"
+                            Grid.ColumnSpan="4"
+                            ItemsSource="{x:Bind InputMethods, Mode=OneWay}"
+                            HorizontalAlignment="Stretch">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="0" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="local:InputMethodItem">
+                                    <Border
+                                        HorizontalAlignment="Stretch"
+                                        Padding="12,8"
+                                        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                        BorderThickness="0,0,0,1">
+                                        <Grid ColumnSpacing="12">
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="30" />
+                                                <ColumnDefinition Width="50" />
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="180" />
                                                 <ColumnDefinition Width="80" />
@@ -185,10 +172,11 @@
                                                 Tag="{x:Bind}"
                                                 Visibility="{x:Bind DeleteButtonVisibility, Mode=OneWay}" />
                                         </Grid>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </Grid>
                     </toolkit:SettingsCard>
                 </toolkit:SettingsExpander.Items>
             </toolkit:SettingsExpander>
@@ -216,6 +204,7 @@
                         <TextBlock x:Uid="ConfirmImeSectionHeader" />
                     </toolkit:SettingsExpander.Header>
                     <toolkit:SettingsExpander.Items>
+                        <toolkit:SettingsCard ContentAlignment="Vertical" HorizontalContentAlignment="Stretch">
                         <ItemsRepeater
                             ItemsSource="{x:Bind ConfirmSelectedInputMethods, Mode=OneWay}"
                             HorizontalAlignment="Stretch">
@@ -256,6 +245,7 @@
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
+                        </toolkit:SettingsCard>
                     </toolkit:SettingsExpander.Items>
                 </toolkit:SettingsExpander>
             </StackPanel>
