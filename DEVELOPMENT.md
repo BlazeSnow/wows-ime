@@ -101,7 +101,7 @@
 
 ## 本地开发
 
-环境要求：Windows 10 17763 及以上、.NET 10 SDK、Visual Studio（含 WinUI 3 与单项目 MSIX 打包支持）；Windows App SDK 2.3.1 与 `Microsoft.Data.Sqlite` 由 NuGet 自动还原。
+环境要求：Windows 10 17763 及以上、.NET 10 SDK、Visual Studio（含 WinUI 3 与单项目 MSIX 打包支持）；Windows App SDK 2.4.0 与 `Microsoft.Data.Sqlite` 由 NuGet 自动还原。
 
 - 解决方案文件为 `wows-ime.slnx`（XML 格式），平台为 ARM64 / x86 / x64
 - `Properties\launchSettings.json` 提供两个启动配置：`wows-ime (Package)`（以 MSIX 包运行，行为与发布一致，推荐）和 `wows-ime (Unpackaged)`
