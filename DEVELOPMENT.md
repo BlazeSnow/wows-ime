@@ -64,13 +64,14 @@
 
 ## 程序架构
 
-程序使用 WinUI 3（Windows App SDK）架构。解决方案 `wows-ime.slnx` 包含三个项目：
+程序使用 WinUI 3（Windows App SDK）架构。解决方案 `wows-ime.slnx` 包含四个项目：
 
 | 项目 | 职责 |
-| --- | --- |
+|---|---|
 | `wows-ime.csproj`（主项目） | 应用入口与组合根：`App.xaml(.cs)`、`PageHost.cs` |
 | `wows-ime.Core` | 无 UI 的核心逻辑：模型、接口、输入法扫描/持久化/游戏配置服务 |
 | `wows-ime.Pages` | 页面层：Shell / HomePage / SettingsPage 及绑定模型 |
+| `wows-ime.Tests` | xUnit 单元测试：Core 层逻辑测试与 TSF 扫描冒烟测试 |
 
 注意：Core 与 Pages 两个子项目物理上位于主项目目录内，主项目 csproj 通过 `Compile Remove`、`Page Remove` 等排除了这些子目录，避免重复编译。
 
@@ -98,6 +99,20 @@
 - `Views/Shell.xaml(.cs)`：TitleBar + NavigationView + ContentFrame 外壳
 - `Views/HomePage.xaml(.cs)`：主界面，三步向导：① 游戏路径（预设单选 + 自定义路径增删）→ ② 输入法选择（列表 + 分类下拉 + 自定义输入法增删 + 刷新）→ ③ 确认写入（步骤进度与状态提示）
 - `Views/SettingsPage.xaml(.cs)`：设置页：界面语言切换（切换后弹重启确认对话框）、项目官网/仓库卡片、版本卡片
+
+## 单元测试
+
+测试项目为 `wows-ime.Tests`（xUnit，目标框架与 Core 一致），引用 `wows-ime.Core`，随解决方案一起构建。运行命令：
+
+```powershell
+dotnet test wows-ime.Tests/wows-ime.Tests.csproj
+```
+
+- 覆盖范围：
+  - `Services/GameConfigServiceTests`：游戏 exe 校验与参数守卫、数字版本目录解析、配置文档分组与元素顺序、UTF-8 无 BOM 写入、取消令牌行为；使用临时目录并在测试结束时清理
+  - `Rules/LanguageRulesTests`：语言模式归一化与校验（区分大小写）、显式模式原样返回、auto 模式按系统语言推断各变体与回退逻辑（`ISystemLanguagePreferences` 使用假实现）
+  - `Infrastructure/InputMethodScannerTests`：TSF 扫描冒烟测试，仅断言结果结构与已知警告码（扫描结果依赖真实系统输入法配置）
+- `SettingsPersistence` 依赖 `ApplicationData.Current`（打包应用环境），不在单元测试覆盖范围内
 
 ## 本地开发
 
@@ -145,4 +160,4 @@
 - 接口 `I` 前缀；类型与非字段成员 PascalCase；未定义私有字段 `_camelCase`
 - 不使用 `this.` 限定；不偏好 var；偏好模式匹配、switch 表达式、主构造函数、block-scoped 命名空间、大括号必写
 - Allman 大括号风格（所有大括号换行）；修饰符顺序固定（`public`、`private`、`protected`、`internal`、`static`、…、`async`）
-- 目前没有单元测试项目；Core 层通过 Abstractions 接口保持可测试设计
+- Core 层通过 Abstractions 接口保持可测试设计，单元测试见"单元测试"章节
