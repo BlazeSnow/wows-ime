@@ -38,6 +38,11 @@ public sealed partial class Shell : UserControl
         }
 
         var pageType = tag switch { "settings" => typeof(SettingsPage), _ => typeof(HomePage) };
+        if (ContentFrame.Content?.GetType() == pageType)
+        {
+            return;
+        }
+
         _ = ContentFrame.Navigate(pageType, host);
     }
 
