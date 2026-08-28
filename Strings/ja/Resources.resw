@@ -225,6 +225,9 @@
   <data name="Dialog/Common/Cancel" xml:space="preserve">
     <value>キャンセル</value>
   </data>
+  <data name="Dialog/Common/OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
   <data name="Dialog/AddCustomIme/Title" xml:space="preserve">
     <value>カスタムIMEを追加</value>
   </data>
