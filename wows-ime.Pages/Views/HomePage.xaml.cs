@@ -18,6 +18,7 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
     private bool suppressSettingsSave;
     private int currentStep = 1;
     private string currentSelectedGamePathText = string.Empty;
+    private DispatcherTimer? statusTimer;
 
     public event PropertyChangedEventHandler? PropertyChanged;
     public ObservableCollection<InputMethodItem> InputMethods { get; } = new();
@@ -301,10 +302,14 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
     {
         if (sender is ComboBox { Tag: InputMethodItem item, SelectedIndex: >= 0 } comboBox)
         {
-            item.CategoryIndex = comboBox.SelectedIndex;
-        }
+            if (item.CategoryIndex == comboBox.SelectedIndex)
+            {
+                return;
+            }
 
-        SaveCustomInputMethods();
+            item.CategoryIndex = comboBox.SelectedIndex;
+            SaveCustomInputMethods();
+        }
     }
 
     private async void WriteConfigButton_Click(object sender, RoutedEventArgs e)
@@ -435,12 +440,13 @@ public sealed partial class HomePage : Page, INotifyPropertyChanged
 
     private void ShowStatus(string message, InfoBarSeverity severity)
     {
+        statusTimer?.Stop();
         StatusInfoBar.Severity = severity;
         StatusInfoBar.Message = message;
         StatusInfoBar.IsOpen = true;
-        var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-        timer.Tick += (_, _) => { timer.Stop(); StatusInfoBar.IsOpen = false; };
-        timer.Start();
+        statusTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+        statusTimer.Tick += (_, _) => { statusTimer?.Stop(); StatusInfoBar.IsOpen = false; };
+        statusTimer.Start();
     }
 
     private string SR(string key) => host.Localization.GetString(key);
