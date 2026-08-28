@@ -153,7 +153,7 @@ public sealed class GameConfigServiceTests : IDisposable
         };
         var targetFile = Path.Combine(root, "bin", "9999999", "res_mods", "ime_config.xml");
 
-        await GameConfigService.WriteConfigFilesAsync([targetFile], inputMethods);
+        await GameConfigService.WriteConfigFilesAsync([targetFile], inputMethods, TestContext.Current.CancellationToken);
 
         Assert.True(File.Exists(targetFile));
         var bytes = File.ReadAllBytes(targetFile);
@@ -170,6 +170,7 @@ public sealed class GameConfigServiceTests : IDisposable
             new InputMethodDefinition("微软拼音", ImeCategory.ChineseSimplified)
         };
         var targetFile = Path.Combine(root, "bin", "9999999", "res_mods", "ime_config.xml");
+        // 刻意传入预先取消的令牌，验证被测代码尊重取消请求。
         var token = new CancellationToken(canceled: true);
 
         await Assert.ThrowsAsync<OperationCanceledException>(
