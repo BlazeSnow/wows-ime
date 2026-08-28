@@ -67,7 +67,7 @@
 程序使用 WinUI 3（Windows App SDK）架构。解决方案 `wows-ime.slnx` 包含四个项目：
 
 | 项目 | 职责 |
-|---|---|
+| --- | --- |
 | `wows-ime.csproj`（主项目） | 应用入口与组合根：`App.xaml(.cs)`、`PageHost.cs` |
 | `wows-ime.Core` | 无 UI 的核心逻辑：模型、接口、输入法扫描/持久化/游戏配置服务 |
 | `wows-ime.Pages` | 页面层：Shell / HomePage / SettingsPage 及绑定模型 |
