@@ -1,0 +1,6 @@
+{
+    // 中文文档按语义分段，不强制 80 列行宽
+    "MD013": false,
+    // README 的 Microsoft Store 徽章等需要内联 HTML
+    "MD033": false
+}
