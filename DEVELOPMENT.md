@@ -102,10 +102,10 @@
 
 ## 单元测试
 
-测试项目为 `wows-ime.Tests`（xUnit，目标框架与 Core 一致），引用 `wows-ime.Core`，随解决方案一起构建。运行命令：
+测试项目为 `wows-ime.Tests`（xUnit v3，目标框架与 Core 一致），引用 `wows-ime.Core`，随解决方案一起构建。仓库通过 `global.json` 声明 `Microsoft.Testing.Platform` runner 以启用 `dotnet test` 的 MTP 模式（.NET 10 SDK 上 MTP 测试项目不再支持经 VSTest 目标运行）。运行命令：
 
 ```powershell
-dotnet test wows-ime.Tests/wows-ime.Tests.csproj
+dotnet test --project wows-ime.Tests/wows-ime.Tests.csproj
 ```
 
 - 覆盖范围：
