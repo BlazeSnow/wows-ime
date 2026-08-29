@@ -14,7 +14,11 @@
 
 ## 三、软件截图
 
-![mainpage](images/mainpage.png)
+![选择根目录](images/image-1.png)
+
+![选择输入法](images/image-2.png)
+
+![确认写入游戏目录](images/image-3.png)
 
 ## 四、开发者信息
 
