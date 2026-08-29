@@ -225,6 +225,9 @@
   <data name="Dialog/Common/Cancel" xml:space="preserve">
     <value>取消</value>
   </data>
+  <data name="Dialog/Common/OK" xml:space="preserve">
+    <value>确定</value>
+  </data>
   <data name="Dialog/AddCustomIme/Title" xml:space="preserve">
     <value>添加自定义输入法</value>
   </data>

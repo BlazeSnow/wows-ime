@@ -94,7 +94,7 @@ public sealed partial class SettingsPage : Page
 
     private async Task ShowErrorAsync(string message)
     {
-        var dialog = new ContentDialog { Title = message, CloseButtonText = "OK", XamlRoot = XamlRoot };
+        var dialog = new ContentDialog { Title = message, CloseButtonText = SR("Dialog/Common/OK"), XamlRoot = XamlRoot };
         await dialog.ShowAsync();
     }
 

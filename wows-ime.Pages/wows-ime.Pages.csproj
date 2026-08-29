@@ -5,6 +5,8 @@
         <OutputType>Library</OutputType>
         <UseWinUI>true</UseWinUI>
         <WinUISDKReferences>false</WinUISDKReferences>
+        <Platforms>ARM64;x64;x86</Platforms>
+        <PlatformTarget>AnyCPU</PlatformTarget>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -14,6 +16,6 @@
     <ItemGroup>
         <ProjectReference Include="..\wows-ime.Core\wows-ime.Core.csproj" />
         <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
-        <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.3.1" />
+        <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
     </ItemGroup>
 </Project>

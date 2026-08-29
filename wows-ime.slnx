@@ -4,8 +4,21 @@
         <Platform Name="x64" />
         <Platform Name="x86" />
     </Configurations>
-    <Project Path="wows-ime.Core\wows-ime.Core.csproj" />
-    <Project Path="wows-ime.Pages\wows-ime.Pages.csproj" />
+    <Project Path="wows-ime.Core\wows-ime.Core.csproj">
+        <Platform Solution="*|ARM64" Project="ARM64" />
+        <Platform Solution="*|x64" Project="x64" />
+        <Platform Solution="*|x86" Project="x86" />
+    </Project>
+    <Project Path="wows-ime.Pages\wows-ime.Pages.csproj">
+        <Platform Solution="*|ARM64" Project="ARM64" />
+        <Platform Solution="*|x64" Project="x64" />
+        <Platform Solution="*|x86" Project="x86" />
+    </Project>
+    <Project Path="wows-ime.Tests\wows-ime.Tests.csproj">
+        <Platform Solution="*|ARM64" Project="AnyCPU" />
+        <Platform Solution="*|x64" Project="AnyCPU" />
+        <Platform Solution="*|x86" Project="AnyCPU" />
+    </Project>
     <Project Path="wows-ime.csproj">
         <Platform Solution="*|ARM64" Project="ARM64" />
         <Platform Solution="*|x64" Project="x64" />
