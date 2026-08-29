@@ -6,6 +6,7 @@
         <UseWinUI>true</UseWinUI>
         <WinUISDKReferences>false</WinUISDKReferences>
         <Platforms>ARM64;x64;x86</Platforms>
+        <PlatformTarget>AnyCPU</PlatformTarget>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
