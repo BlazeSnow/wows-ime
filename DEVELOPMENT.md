@@ -118,7 +118,7 @@ dotnet test --project wows-ime.Tests/wows-ime.Tests.csproj
 
 环境要求：Windows 10 17763 及以上、.NET 10 SDK、Visual Studio（含 WinUI 3 与单项目 MSIX 打包支持）；Windows App SDK 2.4.0 与 `Microsoft.Data.Sqlite` 由 NuGet 自动还原。
 
-- 解决方案文件为 `wows-ime.slnx`（XML 格式），平台为 ARM64 / x86 / x64
+- 解决方案文件为 `wows-ime.slnx`（XML 格式），平台为 ARM64 / x86 / x64；主项目、Core、Pages 声明相同的平台列表并随解决方案 CPU 分平台构建（输出目录含平台名），Tests 固定 AnyCPU（纯托管逻辑，无需分架构）
 - `Properties\launchSettings.json` 提供两个启动配置：`wows-ime (Package)`（以 MSIX 包运行，行为与发布一致，推荐）和 `wows-ime (Unpackaged)`
 - 命令行构建示例：
 
