@@ -1,0 +1,32 @@
+---
+titleTemplate: 'WOWS-IME'
+description: '战舰世界中文输入法配置文件修改器，修订配置文件以支持更多中文输入法。'
+layout: home
+
+hero:
+    name: "WOWS-IME"
+    tagline: "战舰世界中文输入法配置文件修改器，修订配置文件以支持更多中文输入法。"
+---
+
+## 如何下载
+
+<DownloadLinks microsoft-store="9P0R5GM2PTKW" />
+
+## 软件截图
+
+![选择游戏根目录](/asset/image-1.png)
+
+![选择输入法](/asset/image-2.png)
+
+![确认写入游戏目录](/asset/image-3.png)
+
+## 仓库信息
+
+> 由 v2026.10.20.0 起，WOWS-IME 使用 Rust 重写，接替原有的 WinUI 版。
+
+- Rust版：<https://github.com/BlazeSnow/wows-ime.Rust>
+- WinUI版：<https://github.com/BlazeSnow/wows-ime.WinUI>
+
+## 开发者信息
+
+<https://github.com/BlazeSnow>
