@@ -27,10 +27,9 @@ const props = defineProps<{
 
 const { lang } = useData()
 
-//各语言对应的徽章素材后缀与替代文本（来源 get.microsoft.com，与各语言 README 一致），未知语言回退到英文徽章
+//各语言对应的徽章素材后缀与替代文本（来源 get.microsoft.com，与各语言 README 一致），未知语言回退到默认徽章
 const localeArt: Record<string, { suffix: string; alt: string }> = {
     'zh-CN': { suffix: '', alt: '从 Microsoft 获取' },
-    'en-US': { suffix: '.en', alt: 'Get it from Microsoft' },
     'zh-Hant': { suffix: '.zh-hant', alt: '從 Microsoft 取得' },
     'ja-JP': { suffix: '.ja', alt: 'Microsoft から入手' }
 }
@@ -42,7 +41,7 @@ const presetLinks = computed<DownloadLink[]>(() => {
             ? props.microsoftStore
             : `https://apps.microsoft.com/detail/${props.microsoftStore}`
         //按界面语言选择徽章素材
-        const art = localeArt[lang.value] ?? { suffix: '.en', alt: 'Get it from Microsoft' }
+        const art = localeArt[lang.value] ?? localeArt['zh-CN']
         items.push({
             label: 'Microsoft Store',
             href,

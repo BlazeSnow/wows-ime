@@ -86,6 +86,29 @@ export const shared = defineConfig({
                                 }
                             }
                         }
+                    },
+                    ja: {
+                        translations: {
+                            button: {
+                                buttonText: 'ドキュメントを検索',
+                                buttonAriaLabel: 'ドキュメントを検索',
+                            },
+                            modal: {
+                                displayDetails: '記事の詳細を表示',
+                                resetButtonTitle: '内容を消去',
+                                backButtonTitle: '戻る',
+                                noResultsText: '見つかりませんでした',
+                                footer: {
+                                    selectText: '選択',
+                                    selectKeyAriaLabel: '選択',
+                                    navigateText: '切り替え',
+                                    navigateUpKeyAriaLabel: '上へ',
+                                    navigateDownKeyAriaLabel: '下へ',
+                                    closeText: '閉じる',
+                                    closeKeyAriaLabel: '閉じる',
+                                }
+                            }
+                        }
                     }
                 }
             }
