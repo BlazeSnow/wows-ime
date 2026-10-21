@@ -7,6 +7,7 @@
 - 🏷️ 根据微软商店政策 10.1.1（应用标题不得以所参照软件或服务的名称开头），应用更名为「WOWS输入法工具」，功能保持不变
 - 🌍 繁体中文与日语界面下的应用名同步更名为「WOWS輸入法工具」和「WOWS用IMEツール」
 - 📌 旧名称：简体中文「战舰世界输入法配置工具」、繁体中文「戰艦世界輸入法配置工具」、日语「World of Warships IME設定ツール」
+- ⬆️ 更新依赖：Microsoft.WindowsAppSDK 2.4.0 → 2.5.1、Microsoft.Data.Sqlite 10.0.11 → 10.0.13，测试依赖同步升级至 xunit v3 4.0.2
 - 🔗 项目官网更新为 <https://wows.blazesnow.com/>，项目仓库更新为 <https://github.com/BlazeSnow/wows-ime.WinUI>
 
 ## 🏷️ v2026.8.29.0
