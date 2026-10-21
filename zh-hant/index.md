@@ -14,11 +14,11 @@ hero:
 
 ## 軟體截圖
 
-<ThemeImage light="/asset/image-1.png" alt="選擇遊戲根目錄" />
+![選擇遊戲根目錄](/asset/image-1.png)
 
-<ThemeImage light="/asset/image-2.png" alt="選擇輸入法" />
+![選擇輸入法](/asset/image-2.png)
 
-<ThemeImage light="/asset/image-3.png" alt="確認寫入遊戲目錄" />
+![確認寫入遊戲目錄](/asset/image-3.png)
 
 ## 儲存庫資訊
 

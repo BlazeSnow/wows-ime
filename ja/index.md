@@ -14,11 +14,11 @@ hero:
 
 ## スクリーンショット
 
-<ThemeImage light="/asset/image-1.png" alt="ゲームルートディレクトリを選択" />
+![ゲームルートディレクトリを選択](/asset/image-1.png)
 
-<ThemeImage light="/asset/image-2.png" alt="入力メソッドを選択" />
+![入力メソッドを選択](/asset/image-2.png)
 
-<ThemeImage light="/asset/image-3.png" alt="ゲームディレクトリへの書き込みを確認" />
+![ゲームディレクトリへの書き込みを確認](/asset/image-3.png)
 
 ## リポジトリ
 

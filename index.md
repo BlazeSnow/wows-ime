@@ -14,11 +14,11 @@ hero:
 
 ## 软件截图
 
-<ThemeImage light="/asset/image-1.png" alt="选择游戏根目录" />
+![选择游戏根目录](/asset/image-1.png)
 
-<ThemeImage light="/asset/image-2.png" alt="选择输入法" />
+![选择输入法](/asset/image-2.png)
 
-<ThemeImage light="/asset/image-3.png" alt="确认写入游戏目录" />
+![确认写入游戏目录](/asset/image-3.png)
 
 ## 仓库信息
 
