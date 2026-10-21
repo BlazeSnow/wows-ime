@@ -22,9 +22,10 @@ hero:
 
 ## 仓库信息
 
-- 应用源码：<https://github.com/BlazeSnow/wows-ime.WinUI>
-- 站点源码：<https://github.com/BlazeSnow/wows-ime>
-- 官网：<https://wows.blazesnow.com/>
+> 由 v2026.10.20.0 起，WOWS-IME 使用 Rust 重写，接替原有的 WinUI 版。
+
+- Rust版：<https://github.com/BlazeSnow/wows-ime.Rust>
+- WinUI版：<https://github.com/BlazeSnow/wows-ime.WinUI>
 
 ## 开发者信息
 
